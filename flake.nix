@@ -10,20 +10,32 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        torzu = pkgs.callPackage ./pkgs/torzu/package.nix { };
-        suyu = pkgs.callPackage ./pkgs/suyu/package.nix { };
+        inherit (pkgs.callPackage ./pkgs/yuzu { })
+          citron
+          torzu
+          suyu
+          sudachi
+          eden
+          ;
       in
       {
         packages = {
           default = torzu;
+          citron = citron;
           torzu = torzu;
           suyu = suyu;
+          sudachi = sudachi;
+          eden = eden;
+
         };
 
         apps = {
           default = flake-utils.lib.mkApp { drv = torzu; name = "yuzu"; };
+          citron = flake-utils.lib.mkApp { drv = citron; name = "citron"; };
           torzu = flake-utils.lib.mkApp { drv = torzu; name = "yuzu"; };
           suyu = flake-utils.lib.mkApp { drv = suyu; name = "suyu"; };
+          sudachi = flake-utils.lib.mkApp { drv = sudachi; name = "yuzu"; };
+          eden = flake-utils.lib.mkApp { drv = eden; name = "eden"; };
         };
       }
     );
