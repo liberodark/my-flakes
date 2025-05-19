@@ -27,8 +27,5 @@
         "nix.serverPath": "nixd"
       }
     }
-  },
-  "remoteEnv": {
-    "NIXPKGS": "/workspaces/nixpkgs"
   }
 }
