@@ -35,6 +35,38 @@
     homepage = "http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu";
   };
 
+  suyu = callPackage ./generic.nix (
+    let
+      version = "0.0.4";
+    in
+    {
+      forkName = "suyu";
+      inherit version;
+      source = fetchFromGitea {
+        domain = "git.suyu.dev";
+        owner = "suyu";
+        repo = "suyu";
+        rev = "v${version}";
+        hash = "sha256-GgLCbQI7u9neFxQq4borNhlg72FIYn+J5XkaK/7hpnQ=";
+        fetchSubmodules = true;
+      };
+      patches = [
+        # Remove coroutines from debugger to fix boost::asio compatibility issues
+        ./fix-debugger.patch
+        # Add explicit cast for CRC checksum value
+        ./fix-udp-protocol.patch
+        # Use specific boost::asio includes and update to modern io_context
+        ./fix-udp-client.patch
+        # Updates suppressed diagnostics
+        ./fix-aarch64-linux-build.patch
+      ];
+      homepage = "https://suyu.dev";
+      cmakeFlagsPrefix = "SUYU";
+      udevFileName = "72-suyu-input.rules";
+      mainProgram = "suyu";
+    }
+  );
+
   citron = callPackage ./generic.nix (
     let
       version = "0.6.1";
