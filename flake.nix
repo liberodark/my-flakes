@@ -10,33 +10,25 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        inherit (pkgs.callPackage ./pkgs/yuzu { })
-          citron
-          torzu
-          suyu
-          sudachi
-          eden
-          ;
-      in
-      {
-        packages = {
-          default = torzu;
-          citron = citron;
-          torzu = torzu;
-          suyu = suyu;
-          sudachi = sudachi;
-          eden = eden;
+        # Packages from ./pkgs/yuzu
+        yuzuPkgs = pkgs.callPackage ./pkgs/yuzu { };
+        packageNames = builtins.attrNames yuzuPkgs;
+        getPkg = name: builtins.getAttr name yuzuPkgs;
+        # Helper: use mainProgram if present, else name
+        mkApp = name:
+          let pkg = getPkg name;
+          in flake-utils.lib.mkApp {
+            drv = pkg;
+            name = (pkg.meta.mainProgram or name);
+          };
+      in {
+        packages = builtins.listToAttrs (
+          map (n: { name = n; value = getPkg n; }) packageNames
+        );
 
-        };
-
-        apps = {
-          default = flake-utils.lib.mkApp { drv = torzu; name = "yuzu"; };
-          citron = flake-utils.lib.mkApp { drv = citron; name = "citron"; };
-          torzu = flake-utils.lib.mkApp { drv = torzu; name = "yuzu"; };
-          suyu = flake-utils.lib.mkApp { drv = suyu; name = "suyu"; };
-          sudachi = flake-utils.lib.mkApp { drv = sudachi; name = "yuzu"; };
-          eden = flake-utils.lib.mkApp { drv = eden; name = "eden"; };
-        };
+        apps = builtins.listToAttrs (
+          map (n: { name = n; value = mkApp n; }) packageNames
+        );
       }
     );
 }
