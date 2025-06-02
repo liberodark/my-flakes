@@ -12,12 +12,20 @@
         pkgs = nixpkgs.legacyPackages.${system};
         torzu = pkgs.callPackage ./pkgs/torzu/package.nix { };
         suyu = pkgs.callPackage ./pkgs/suyu/package.nix { };
+        bore-scheduler = pkgs.callPackage ./pkgs/bore-scheduler/package.nix { };
       in
       {
         packages = {
+          # Emulator
           default = torzu;
           torzu = torzu;
           suyu = suyu;
+
+          # Kernel
+          linuxPackages_6_6_bore = bore-scheduler.linuxPackages_6_6_bore.kernel;
+          linuxPackages_6_12_bore = bore-scheduler.linuxPackages_6_12_bore.kernel;
+          linuxPackages_6_14_bore = bore-scheduler.linuxPackages_6_14_bore.kernel;
+          linuxPackages_6_15_bore = bore-scheduler.linuxPackages_6_15_bore.kernel;
         };
 
         apps = {
