@@ -28,6 +28,13 @@
           linuxPackages_6_15_bore = bore-scheduler.linuxPackages_6_15_bore.kernel;
         };
 
+        kernelPackages = {
+          linuxPackages_6_6_bore = bore-scheduler.linuxPackages_6_6_bore;
+          linuxPackages_6_12_bore = bore-scheduler.linuxPackages_6_12_bore;
+          linuxPackages_6_14_bore = bore-scheduler.linuxPackages_6_14_bore;
+          linuxPackages_6_15_bore = bore-scheduler.linuxPackages_6_15_bore;
+        };
+
         apps = {
           default = flake-utils.lib.mkApp { drv = torzu; name = "yuzu"; };
           torzu = flake-utils.lib.mkApp { drv = torzu; name = "yuzu"; };
