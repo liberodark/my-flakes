@@ -12,13 +12,13 @@ let
   bore-scheduler = fetchFromGitHub {
     owner = "firelzrd";
     repo = "bore-scheduler";
-    rev = "cd4af5b36090f3847dc0f584ed23711f6937f890";
-    hash = "sha256-ZGDptNltFGMLzQhccHq7pVVauJlc2QUCuWkL0JjHvXU=";
+    rev = "61a4e4d45bc94f853f5a0c6e688fa22868efc307";
+    hash = "sha256-hHpu4yD0fD+sVPqk5hjnsGPLB/zA/2U30jvYM3BCU+0=";
   };
 
   kernelPatchInfo = {
     "6.6" = { revision = "87"; separator = "-bore"; };
-    "6.12" = { revision = "23"; separator = "-bore"; };
+    "6.12" = { revision = "32"; separator = "-bore"; };
     "6.14" = { revision = "9"; separator = "-bore"; };
     "6.15" = { revision = "0"; separator = "-bore"; };
   };
