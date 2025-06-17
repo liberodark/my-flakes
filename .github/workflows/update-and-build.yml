@@ -29,7 +29,7 @@ env:
 
 jobs:
   update-build-cache:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
         with:
@@ -61,7 +61,7 @@ jobs:
             #"torzu"
             #"suyu"
             #"linuxPackages_6_6_bore"
-            #"linuxPackages_6_12_bore"
+            "linuxPackages_6_12_bore"
             "linuxPackages_6_14_bore"
             #"linuxPackages_6_15_bore"
           )
