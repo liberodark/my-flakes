@@ -63,7 +63,7 @@ jobs:
             #"linuxPackages_6_6_bore"
             "linuxPackages_6_12_bore"
             "linuxPackages_6_14_bore"
-            #"linuxPackages_6_15_bore"
+            "linuxPackages_6_15_bore"
           )
 
           PACKAGES="${{ inputs.packages }}"
@@ -72,12 +72,18 @@ jobs:
           FAILED=""
           for pkg in $PACKAGES; do
             echo "::group::Building $pkg"
-            if nix build .#$pkg --no-link --print-build-logs; then
-              nix build .#$pkg --json | jq -r '.[0].outputs.out' | cachix push ${{ env.CACHIX_NAME }} || true
-              echo "✓ $pkg"
+            STORE_PATH=$(nix eval .#$pkg.outPath --raw 2>/dev/null || true)
+
+            if [ -n "$STORE_PATH" ] && nix store info --store https://${{ env.CACHIX_NAME }}.cachix.org $STORE_PATH &>/dev/null; then
+              echo "✓ $pkg (already in cache)"
             else
-              echo "✗ $pkg (build failed)"
-              FAILED="$FAILED $pkg"
+              if nix build .#$pkg --no-link --print-build-logs; then
+                nix build .#$pkg --json | jq -r '.[0].outputs.out' | cachix push ${{ env.CACHIX_NAME }} || true
+                echo "✓ $pkg"
+              else
+                echo "✗ $pkg (build failed)"
+                FAILED="$FAILED $pkg"
+              fi
             fi
             echo "::endgroup::"
           done
