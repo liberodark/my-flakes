@@ -13,6 +13,9 @@
         torzu = pkgs.callPackage ./pkgs/torzu/package.nix { };
         suyu = pkgs.callPackage ./pkgs/suyu/package.nix { };
         bore-scheduler = pkgs.callPackage ./pkgs/bore-scheduler/package.nix { };
+        linux-jovian = {
+          linuxPackages_jovian = pkgs.linuxPackagesFor (pkgs.callPackage ./pkgs/linux-jovian/default.nix { });
+        };
       in
       {
         packages = {
@@ -26,6 +29,7 @@
           linuxPackages_6_12_bore = bore-scheduler.linuxPackages_6_12_bore.kernel;
           linuxPackages_6_14_bore = bore-scheduler.linuxPackages_6_14_bore.kernel;
           linuxPackages_6_15_bore = bore-scheduler.linuxPackages_6_15_bore.kernel;
+          linuxPackages_jovian = linux-jovian.linuxPackages_jovian.kernel;
         };
 
         kernelPackages = {
@@ -33,6 +37,7 @@
           linuxPackages_6_12_bore = bore-scheduler.linuxPackages_6_12_bore;
           linuxPackages_6_14_bore = bore-scheduler.linuxPackages_6_14_bore;
           linuxPackages_6_15_bore = bore-scheduler.linuxPackages_6_15_bore;
+          linuxPackages_jovian = linux-jovian.linuxPackages_jovian;
         };
 
         apps = {
