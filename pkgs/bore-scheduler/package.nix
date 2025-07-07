@@ -3,7 +3,6 @@
   fetchFromGitHub,
   linuxPackages_6_6,
   linuxPackages_6_12,
-  linuxPackages_6_14,
   linuxPackages_6_15,
   ...
 }:
@@ -19,7 +18,6 @@ let
   kernelPatchInfo = {
     "6.6" = { revision = "87"; separator = "-bore"; };
     "6.12" = { revision = "32"; separator = "-bore"; };
-    "6.14" = { revision = "9"; separator = "-bore"; };
     "6.15" = { revision = "0"; separator = "-bore"; };
   };
 
@@ -65,6 +63,5 @@ in
 {
   linuxPackages_6_6_bore = makeKernelPackage linuxPackages_6_6 "6.6";
   linuxPackages_6_12_bore = makeKernelPackage linuxPackages_6_12 "6.12";
-  linuxPackages_6_14_bore = makeKernelPackage linuxPackages_6_14 "6.14";
   linuxPackages_6_15_bore = makeKernelPackage linuxPackages_6_15 "6.15";
 }

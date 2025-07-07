@@ -65,7 +65,6 @@ jobs:
             #"suyu"
             #"linuxPackages_6_6_bore"
             "linuxPackages_6_12_bore"
-            "linuxPackages_6_14_bore"
             "linuxPackages_6_15_bore"
             "linuxPackages_jovian"
           )
