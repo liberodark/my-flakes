@@ -7,24 +7,24 @@
   ...
 }:
 let
-  version = "5.9.6";
+  version = "6.0.0";
   bore-scheduler = fetchFromGitHub {
     owner = "firelzrd";
     repo = "bore-scheduler";
-    rev = "61a4e4d45bc94f853f5a0c6e688fa22868efc307";
-    hash = "sha256-hHpu4yD0fD+sVPqk5hjnsGPLB/zA/2U30jvYM3BCU+0=";
+    rev = "38e4df81004bb5957cc06960765b5a850602da9c";
+    hash = "sha256-2yvT/arD3m0sc41bqUVIz2ylZkjhMqbYgigmaTjaHHQ=";
   };
 
   kernelPatchInfo = {
-    "6.6" = { revision = "87"; separator = "-bore"; };
-    "6.12" = { revision = "32"; separator = "-bore"; };
-    "6.15" = { revision = "0"; separator = "-bore"; };
+    "6.6" = { revision = "97"; separator = "-bore"; };
+    "6.12" = { revision = "37"; separator = "-bore"; };
+    "6.15" = { revision = "6"; separator = "-bore"; };
   };
 
   getPatchesForKernel = kernelVersion:
     let
       patchInfo = kernelPatchInfo.${kernelVersion} or (throw "Unknown kernel version: ${kernelVersion}");
-      patchFileName = "0001-linux${kernelVersion}.${patchInfo.revision}${patchInfo.separator}${version}.patch";
+      patchFileName = "0001-linux${kernelVersion}.${patchInfo.revision}${patchInfo.separator}-${version}.patch";
     in
     [
       {
@@ -35,10 +35,10 @@ let
         name = "bore-scheduler-smt";
         patch = "${bore-scheduler}/patches/stable/linux-${kernelVersion}-bore/0002-sched-fair-Prefer-full-idle-SMT-cores.patch";
       }
-      {
-        name = "bore-scheduler-ext-fix";
-        patch = "${bore-scheduler}/patches/additions/0002-sched-ext-coexistence-fix.patch";
-      }
+      #{
+      #  name = "bore-scheduler-ext-fix";
+      #  patch = "${bore-scheduler}/patches/additions/0002-sched-ext-coexistence-fix.patch";
+      #}
     ];
 
   makeKernelPackage =
