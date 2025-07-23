@@ -7,12 +7,12 @@
   ...
 }:
 let
-  version = "6.0.0";
+  version = "6.1.0";
   bore-scheduler = fetchFromGitHub {
     owner = "firelzrd";
     repo = "bore-scheduler";
-    rev = "38e4df81004bb5957cc06960765b5a850602da9c";
-    hash = "sha256-2yvT/arD3m0sc41bqUVIz2ylZkjhMqbYgigmaTjaHHQ=";
+    rev = "827be54f9e433f44accc4cdd5ee476294cc77e3b";
+    hash = "sha256-p+JiCRqqadONor+/kFnsMthfN3uSqU9h/H9vlyJQKR0=";
   };
 
   kernelPatchInfo = {
@@ -35,6 +35,7 @@ let
         name = "bore-scheduler-smt";
         patch = "${bore-scheduler}/patches/stable/linux-${kernelVersion}-bore/0002-sched-fair-Prefer-full-idle-SMT-cores.patch";
       }
+      # Not needed on 6.x.x
       #{
       #  name = "bore-scheduler-ext-fix";
       #  patch = "${bore-scheduler}/patches/additions/0002-sched-ext-coexistence-fix.patch";
