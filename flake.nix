@@ -6,8 +6,15 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils, ... }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      ...
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
         torzu = pkgs.callPackage ./pkgs/torzu/package.nix { };
@@ -28,6 +35,7 @@
           linuxPackages_6_6_bore = bore-scheduler.linuxPackages_6_6_bore.kernel;
           linuxPackages_6_12_bore = bore-scheduler.linuxPackages_6_12_bore.kernel;
           linuxPackages_6_15_bore = bore-scheduler.linuxPackages_6_15_bore.kernel;
+          linuxPackages_6_16_bore = bore-scheduler.linuxPackages_6_16_bore.kernel;
           linuxPackages_jovian = linux-jovian.linuxPackages_jovian.kernel;
         };
 
@@ -35,13 +43,23 @@
           linuxPackages_6_6_bore = bore-scheduler.linuxPackages_6_6_bore;
           linuxPackages_6_12_bore = bore-scheduler.linuxPackages_6_12_bore;
           linuxPackages_6_15_bore = bore-scheduler.linuxPackages_6_15_bore;
+          linuxPackages_6_16_bore = bore-scheduler.linuxPackages_6_16_bore;
           linuxPackages_jovian = linux-jovian.linuxPackages_jovian;
         };
 
         apps = {
-          default = flake-utils.lib.mkApp { drv = torzu; name = "yuzu"; };
-          torzu = flake-utils.lib.mkApp { drv = torzu; name = "yuzu"; };
-          suyu = flake-utils.lib.mkApp { drv = suyu; name = "suyu"; };
+          default = flake-utils.lib.mkApp {
+            drv = torzu;
+            name = "yuzu";
+          };
+          torzu = flake-utils.lib.mkApp {
+            drv = torzu;
+            name = "yuzu";
+          };
+          suyu = flake-utils.lib.mkApp {
+            drv = suyu;
+            name = "suyu";
+          };
         };
       }
     );

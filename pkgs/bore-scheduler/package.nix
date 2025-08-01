@@ -4,6 +4,7 @@
   linuxPackages_6_6,
   linuxPackages_6_12,
   linuxPackages_6_15,
+  linuxPackages_6_16,
   ...
 }:
 let
@@ -16,15 +17,31 @@ let
   };
 
   kernelPatchInfo = {
-    "6.6" = { revision = "97"; separator = "-bore"; };
-    "6.12" = { revision = "37"; separator = "-bore"; };
-    "6.15" = { revision = "6"; separator = "-bore"; };
+    "6.6" = {
+      revision = "97";
+      separator = "-bore";
+    };
+    "6.12" = {
+      revision = "37";
+      separator = "-bore";
+    };
+    "6.15" = {
+      revision = "6";
+      separator = "-bore";
+    };
+    "6.16" = {
+      revision = "";
+      separator = "-rc5-bore";
+    };
   };
 
-  getPatchesForKernel = kernelVersion:
+  getPatchesForKernel =
+    kernelVersion:
     let
       patchInfo = kernelPatchInfo.${kernelVersion} or (throw "Unknown kernel version: ${kernelVersion}");
-      patchFileName = "0001-linux${kernelVersion}.${patchInfo.revision}${patchInfo.separator}-${version}.patch";
+      patchFileName = "0001-linux${kernelVersion}${
+        if patchInfo.revision != "" then ".${patchInfo.revision}" else ""
+      }${patchInfo.separator}-${version}.patch";
     in
     [
       {
@@ -35,11 +52,6 @@ let
         name = "bore-scheduler-smt";
         patch = "${bore-scheduler}/patches/stable/linux-${kernelVersion}-bore/0002-sched-fair-Prefer-full-idle-SMT-cores.patch";
       }
-      # Not needed on 6.x.x
-      #{
-      #  name = "bore-scheduler-ext-fix";
-      #  patch = "${bore-scheduler}/patches/additions/0002-sched-ext-coexistence-fix.patch";
-      #}
     ];
 
   makeKernelPackage =
@@ -57,12 +69,15 @@ let
         };
       };
     in
-    kernelPkg.extend (_self: _super: {
-      inherit kernel;
-    });
+    kernelPkg.extend (
+      _self: _super: {
+        inherit kernel;
+      }
+    );
 in
 {
   linuxPackages_6_6_bore = makeKernelPackage linuxPackages_6_6 "6.6";
   linuxPackages_6_12_bore = makeKernelPackage linuxPackages_6_12 "6.12";
   linuxPackages_6_15_bore = makeKernelPackage linuxPackages_6_15 "6.15";
+  linuxPackages_6_16_bore = makeKernelPackage linuxPackages_6_16 "6.16";
 }
