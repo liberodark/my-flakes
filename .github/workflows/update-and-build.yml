@@ -51,6 +51,9 @@ jobs:
           name: ${{ env.CACHIX_NAME }}
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
+      - name: Clean up Nix store
+        run: nix-collect-garbage -d
+
       - name: Update flake
         run: |
           export NIX_CONFIG="access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}"
