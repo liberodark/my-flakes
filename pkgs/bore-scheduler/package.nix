@@ -3,7 +3,6 @@
   fetchFromGitHub,
   linuxPackages_6_6,
   linuxPackages_6_12,
-  linuxPackages_6_15,
   linuxPackages_6_16,
   ...
 }:
@@ -23,10 +22,6 @@ let
     };
     "6.12" = {
       revision = "37";
-      separator = "-bore";
-    };
-    "6.15" = {
-      revision = "6";
       separator = "-bore";
     };
     "6.16" = {
@@ -78,6 +73,5 @@ in
 {
   linuxPackages_6_6_bore = makeKernelPackage linuxPackages_6_6 "6.6";
   linuxPackages_6_12_bore = makeKernelPackage linuxPackages_6_12 "6.12";
-  linuxPackages_6_15_bore = makeKernelPackage linuxPackages_6_15 "6.15";
   linuxPackages_6_16_bore = makeKernelPackage linuxPackages_6_16 "6.16";
 }
