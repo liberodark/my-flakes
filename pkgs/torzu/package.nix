@@ -82,25 +82,14 @@ in
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "torzu";
-  version = "unstable-2025-02-22";
+  version = "unstable-2025-10-16";
 
   src = fetchgit {
     url = "https://git.ynh.ovh/liberodark/torzu.git";
-    rev = "eaa9c9e3a46eb5099193b11d620ddfe96b6aec83";
-    hash = "sha256-KxLRXM8Y+sIW5L9oYMSeK95HRb30zGRRSfil9DO+utU=";
+    rev = "ff8ac031299abda5f64c1a7f18e44d8762b675f3";
+    hash = "sha256-5KKy+w3WQs3QAzCnZWyhCdGZUCKKZUqdtP8Wb25HAdA=";
     fetchSubmodules = true;
   };
-
-  patches = [
-    # Remove coroutines from debugger to fix boost::asio compatibility issues
-    ./fix-debugger.patch
-    # Add explicit cast for CRC checksum value
-    ./fix-udp-protocol.patch
-    # Use specific boost::asio includes and update to modern io_context
-    ./fix-udp-client.patch
-    # Updates suppressed diagnostics
-    ./fix-aarch64-linux-build.patch
-  ];
 
   nativeBuildInputs = [
     cmake
