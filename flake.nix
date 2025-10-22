@@ -19,8 +19,9 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        torzu = pkgs.callPackage ./pkgs/torzu/package.nix { };
+        citron = pkgs.callPackage ./pkgs/citron/package.nix { };
         suyu = pkgs.callPackage ./pkgs/suyu/package.nix { };
+        torzu = pkgs.callPackage ./pkgs/torzu/package.nix { };
         bore-scheduler = pkgs.callPackage ./pkgs/bore-scheduler/package.nix { };
         linux-jovian = {
           linuxPackages_jovian = pkgs.linuxPackagesFor (pkgs.callPackage ./pkgs/linux-jovian/default.nix { });
@@ -30,8 +31,9 @@
         packages = {
           # Emulator
           default = torzu;
-          torzu = torzu;
+          citron = citron;
           suyu = suyu;
+          torzu = torzu;
 
           # Kernel
           linuxPackages_6_6_bore = bore-scheduler.linuxPackages_6_6_bore.kernel;
@@ -52,13 +54,17 @@
             drv = torzu;
             name = "yuzu";
           };
-          torzu = flake-utils.lib.mkApp {
-            drv = torzu;
-            name = "yuzu";
+          citron = flake-utils.lib.mkApp {
+            drv = citron;
+            name = "citron";
           };
           suyu = flake-utils.lib.mkApp {
             drv = suyu;
             name = "suyu";
+          };
+          torzu = flake-utils.lib.mkApp {
+            drv = torzu;
+            name = "yuzu";
           };
         };
       }
