@@ -3,9 +3,9 @@
 let
   inherit (lib) versions;
 
-  kernelVersion = "6.11.11";
-  vendorVersion = "valve19";
-  hash = "sha256-W/qvYswCclFgJWu5Jh1MRJddnjVkl+Pj0yjLnmQg+Dw=";
+  kernelVersion = "6.16.12";
+  vendorVersion = "valve2";
+  hash = "sha256-+iPSOMWWw1bR+KXhEWferyHW5PgU+3ZyucliipYwOHc=";
 in
 buildLinux (args // rec {
   version = "${kernelVersion}-${vendorVersion}";
@@ -107,9 +107,10 @@ buildLinux (args // rec {
     ZOTAC_ZONE_HID = module;
     ZOTAC_ZONE_PLATFORM = module;
 
-    ASUS_ALLY_HID = module;
-    # Jovian: not actually present in-tree currently
-    # ASUS_ARMOURY = module;
+    # Jovian: renamed
+    HID_ASUS_ALLY = module;
+    ASUS_ARMOURY = module;
+    ASUS_WMI_DEPRECATED_ATTRS = yes;
 
     # PARAVIRT options have overhead, even on bare metal boots. They can cause
     # spinlocks to not be inlined as well. Either way, we don't intend to run this
@@ -117,9 +118,10 @@ buildLinux (args // rec {
     # virtualization-specific drivers.
     HYPERVISOR_GUEST = lib.mkForce no;
 
-    # Jovian: we don't enable this before 6.12
-    # CONFIG_HAVE_RUST=n
-  
+    # Disable some options enabled in ArchLinux 6.1.12-arch1 config
+    # Jovian: we do have Rust, and we can't lie about it
+    # HAVE_RUST = no;
+
     # This has been disabled upstream since 6.11.8-arch1
     # See: https://gitlab.archlinux.org/archlinux/packaging/packages/linux/-/commit/1a06ca984333093fb12cbbff275da31fa2bc5f6c
     ZSWAP_DEFAULT_ON = yes;
@@ -136,6 +138,8 @@ buildLinux (args // rec {
 
     # Disable simple-framebuffer to fix logo regression
     SYSFB_SIMPLEFB = lib.mkForce no;
+    DRM_EFIDRM = no;
+    DRM_VESADRM = no;
 
     # Enable Extensible Scheduling Class
     SCHED_CLASS_EXT = yes;
@@ -144,11 +148,17 @@ buildLinux (args // rec {
     # Jovian: renamed
     MITIGATION_CALL_DEPTH_TRACKING = no;
 
+    # Xbox GIP driver
+    JOYSTICK_XBOX_GIP = module;
+    JOYSTICK_XBOX_GIP_FF = yes;
+    JOYSTICK_XBOX_GIP_LEDS = yes;
+
     # Jovian: fix fallout from the vendor-set options
     DRM_AMD_DC_SI = lib.mkForce (option no);
     DRM_HYPERV = lib.mkForce (option no);
     FB_HYPERV = lib.mkForce (option no);
     INTEL_TDX_GUEST = lib.mkForce (option no);
+    HYPERV = lib.mkForce (option no);
     KVM_GUEST = lib.mkForce (option no);
     MOUSE_PS2_VMMOUSE = lib.mkForce (option no);
     PARAVIRT_TIME_ACCOUNTING = lib.mkForce (option no);

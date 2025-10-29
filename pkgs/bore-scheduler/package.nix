@@ -3,29 +3,29 @@
   fetchFromGitHub,
   linuxPackages_6_6,
   linuxPackages_6_12,
-  linuxPackages_6_16,
+  linuxPackages_6_17,
   ...
 }:
 let
-  version = "6.5.2";
+  version = "6.5.8";
   bore-scheduler = fetchFromGitHub {
     owner = "firelzrd";
     repo = "bore-scheduler";
-    rev = "807683c6cef75ca85a865ceedee9c5c866f3fc75";
-    hash = "sha256-ngXEyAjGOH5GcBkEY1luAsqRTof4nqRelzr34aKGR+Y=";
+    rev = "f7b47ce5d0f556b8d6d0952ba114033a83597824";
+    hash = "sha256-q47kTjdpoWRMu83nhMBFcWCqDlZ93A0MFJYcaxZzwF0=";
   };
 
   kernelPatchInfo = {
     "6.6" = {
-      revision = "97";
+      revision = "87";
       separator = "-bore";
     };
     "6.12" = {
       revision = "37";
       separator = "-bore";
     };
-    "6.16" = {
-      revision = "0";
+    "6.17" = {
+      revision = "4";
       separator = "-bore";
     };
   };
@@ -34,14 +34,30 @@ let
     kernelVersion:
     let
       patchInfo = kernelPatchInfo.${kernelVersion} or (throw "Unknown kernel version: ${kernelVersion}");
-      patchFileName = "0001-linux${kernelVersion}${
-        if patchInfo.revision != "" then ".${patchInfo.revision}" else ""
-      }${patchInfo.separator}-${version}.patch";
+      patchFileName =
+        if kernelVersion == "6.6" then
+          "0001-linux6.6.87-bore5.9.6.patch"
+        else
+          "0001-linux${kernelVersion}${
+            if patchInfo.revision != "" then ".${patchInfo.revision}" else ""
+          }${patchInfo.separator}-${version}.patch";
     in
     [
       {
         name = "bore-scheduler";
         patch = "${bore-scheduler}/patches/stable/linux-${kernelVersion}-bore/${patchFileName}";
+      }
+    ]
+    ++ lib.optionals (kernelVersion != "6.17") [
+      {
+        name = "bore-scheduler-smt";
+        patch = "${bore-scheduler}/patches/stable/linux-${kernelVersion}-bore/0002-sched-fair-Prefer-full-idle-SMT-cores.patch";
+      }
+    ]
+    ++ lib.optionals (kernelVersion == "6.17") [
+      {
+        name = "bore-prefer-previous-cpu";
+        patch = "${bore-scheduler}/patches/stable/linux-${kernelVersion}-bore/0002-prefer-the-previous-cpu-for-wakeup-v3.patch";
       }
     ];
 
@@ -69,5 +85,5 @@ in
 {
   linuxPackages_6_6_bore = makeKernelPackage linuxPackages_6_6 "6.6";
   linuxPackages_6_12_bore = makeKernelPackage linuxPackages_6_12 "6.12";
-  linuxPackages_6_16_bore = makeKernelPackage linuxPackages_6_16 "6.16";
+  linuxPackages_6_17_bore = makeKernelPackage linuxPackages_6_17 "6.17";
 }
