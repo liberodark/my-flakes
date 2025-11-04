@@ -11,13 +11,13 @@ let
   bore-scheduler = fetchFromGitHub {
     owner = "firelzrd";
     repo = "bore-scheduler";
-    rev = "f7b47ce5d0f556b8d6d0952ba114033a83597824";
-    hash = "sha256-q47kTjdpoWRMu83nhMBFcWCqDlZ93A0MFJYcaxZzwF0=";
+    rev = "5a1cdca160da0bfc625328476d1b2ad70fc8bb11";
+    hash = "sha256-UJQ6K8LJWQm0r6kQqAVk9GOa6xqcNNplqbFUldUOsbs=";
   };
 
   kernelPatchInfo = {
     "6.6" = {
-      revision = "87";
+      revision = "107";
       separator = "-bore";
     };
     "6.12" = {
@@ -36,7 +36,7 @@ let
       patchInfo = kernelPatchInfo.${kernelVersion} or (throw "Unknown kernel version: ${kernelVersion}");
       patchFileName =
         if kernelVersion == "6.6" then
-          "0001-linux6.6.87-bore5.9.6.patch"
+          "0001-linux6.6.107-bore5.9.6.patch"
         else
           "0001-linux${kernelVersion}${
             if patchInfo.revision != "" then ".${patchInfo.revision}" else ""

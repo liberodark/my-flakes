@@ -84,12 +84,12 @@ in
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "citron";
-  version = "unstable-2025-10-22";
+  version = "0.10.0";
 
   src = fetchgit {
     url = "https://git.citron-emu.org/citron/emulator.git";
-    rev = "4c7ee4ac3bd7be5272dc59b7ea58430e62084a3c";
-    hash = "sha256-2qsDBAZQk9qNgjz8hpx6eI2nS6Z5CdjDGRxum7I55sg=";
+    tag = finalAttrs.version;
+    hash = "sha256-8wgyeSnBrfQCWzxi+1kWbWjfrkJZ0F+Iavgpn1m0nYk=";
     fetchSubmodules = true;
   };
 
