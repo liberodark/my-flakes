@@ -57,7 +57,7 @@ let
     ++ lib.optionals (kernelVersion == "6.17") [
       {
         name = "bore-prefer-previous-cpu";
-        patch = "${bore-scheduler}/patches/stable/linux-${kernelVersion}-bore/0002-prefer-the-previous-cpu-for-wakeup-v3.patch";
+        patch = "${bore-scheduler}/patches/stable/linux-${kernelVersion}-bore/0002-Prefer-the-previous-cpu-for-wakeup-v6.patch";
       }
     ];
 
