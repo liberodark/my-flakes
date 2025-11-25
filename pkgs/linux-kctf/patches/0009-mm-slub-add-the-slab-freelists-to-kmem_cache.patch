@@ -1,0 +1,101 @@
+From eee4933708eb1af60c46ab0034cfb11b7cd5a6a4 Mon Sep 17 00:00:00 2001
+From: liberodark <liberodark@gmail.com>
+Date: Wed, 26 Nov 2025 11:32:34 +0100
+Subject: [PATCH 09/18] mm/slub: add the slab freelists to kmem_cache
+
+---
+ mm/slab.h | 15 +++++++++++++++
+ mm/slub.c | 23 +++++++++++++++++++++++
+ 2 files changed, 38 insertions(+)
+
+diff --git a/mm/slab.h b/mm/slab.h
+index bf4e92f1c..331117185 100644
+--- a/mm/slab.h
++++ b/mm/slab.h
+@@ -277,6 +277,20 @@ static inline size_t slab_size(const struct slab *slab)
+ /*
+  * Slab cache management.
+  */
++struct kmem_cache_virtual {
++#ifdef CONFIG_SLAB_VIRTUAL
++	/* Protects freed_slabs and freed_slabs_min */
++	spinlock_t freed_slabs_lock;
++	/*
++	 * Slabs on this list have virtual memory of size oo allocated to them
++	 * but no physical memory
++	 */
++	struct list_head freed_slabs;
++	/* Same as freed_slabs but with memory of size min */
++	struct list_head freed_slabs_min;
++#endif
++};
++
+ struct kmem_cache {
+ #ifndef CONFIG_SLUB_TINY
+ 	struct kmem_cache_cpu __percpu *cpu_slab;
+@@ -298,6 +312,7 @@ struct kmem_cache {
+ 
+ 	/* Allocation and freeing of slabs */
+ 	struct kmem_cache_order_objects min;
++	struct kmem_cache_virtual virtual;
+ 	gfp_t allocflags;		/* gfp flags to use on each alloc */
+ 	int refcount;			/* Refcount for slab cache destroy */
+ 	void (*ctor)(void *object);	/* Object constructor */
+diff --git a/mm/slub.c b/mm/slub.c
+index 4bd41bef3..f7b8263cf 100644
+--- a/mm/slub.c
++++ b/mm/slub.c
+@@ -5492,6 +5492,16 @@ static int calculate_sizes(struct kmem_cache_args *args, struct kmem_cache *s)
+ 	return !!oo_objects(s->oo);
+ }
+ 
++static inline void slab_virtual_open(struct kmem_cache *s)
++{
++#ifdef CONFIG_SLAB_VIRTUAL
++	/* WARNING: this stuff will be relocated in bootstrap()! */
++	spin_lock_init(&s->virtual.freed_slabs_lock);
++	INIT_LIST_HEAD(&s->virtual.freed_slabs);
++	INIT_LIST_HEAD(&s->virtual.freed_slabs_min);
++#endif
++}
++
+ static void list_slab_objects(struct kmem_cache *s, struct slab *slab)
+ {
+ #ifdef CONFIG_SLUB_DEBUG
+@@ -5931,6 +5941,16 @@ static int slab_memory_callback(struct notifier_block *self,
+  * that may be pointing to the wrong kmem_cache structure.
+  */
+ 
++static inline void slab_virtual_bootstrap(struct kmem_cache *s, struct kmem_cache *static_cache)
++{
++	slab_virtual_open(s);
++
++#ifdef CONFIG_SLAB_VIRTUAL
++	list_splice(&static_cache->virtual.freed_slabs, &s->virtual.freed_slabs);
++	list_splice(&static_cache->virtual.freed_slabs_min, &s->virtual.freed_slabs_min);
++#endif
++}
++
+ static struct kmem_cache * __init bootstrap(struct kmem_cache *static_cache)
+ {
+ 	int node;
+@@ -5938,6 +5958,7 @@ static struct kmem_cache * __init bootstrap(struct kmem_cache *static_cache)
+ 	struct kmem_cache_node *n;
+ 
+ 	memcpy(s, static_cache, kmem_cache->object_size);
++	slab_virtual_bootstrap(s, static_cache);
+ 
+ 	/*
+ 	 * This runs very early, and only the boot processor is supposed to be
+@@ -6057,6 +6078,8 @@ int do_kmem_cache_create(struct kmem_cache *s, const char *name,
+ 	s->name = name;
+ 	s->size = s->object_size = size;
+ 
++	slab_virtual_open(s);
++
+ 	s->flags = kmem_cache_flags(flags, s->name);
+ #ifdef CONFIG_SLAB_FREELIST_HARDENED
+ 	s->random = get_random_long();
+-- 
+2.50.1
+

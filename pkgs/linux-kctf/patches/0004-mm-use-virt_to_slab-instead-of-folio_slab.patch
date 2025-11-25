@@ -1,0 +1,114 @@
+From eb8f732f29bc1592b653699a596c5f5c230a5113 Mon Sep 17 00:00:00 2001
+From: liberodark <liberodark@gmail.com>
+Date: Wed, 26 Nov 2025 11:23:23 +0100
+Subject: [PATCH 04/18] mm: use virt_to_slab instead of folio_slab
+
+---
+ mm/memcontrol.c  |  2 +-
+ mm/slab_common.c |  9 ++++++---
+ mm/slub.c        | 18 ++++++++----------
+ 3 files changed, 15 insertions(+), 14 deletions(-)
+
+diff --git a/mm/memcontrol.c b/mm/memcontrol.c
+index dcd2d0e15..81243f964 100644
+--- a/mm/memcontrol.c
++++ b/mm/memcontrol.c
+@@ -2431,7 +2431,7 @@ struct mem_cgroup *mem_cgroup_from_obj_folio(struct folio *folio, void *p)
+ 		struct slab *slab;
+ 		unsigned int off;
+ 
+-		slab = folio_slab(folio);
++		slab = virt_to_slab(p);
+ 		obj_exts = slab_obj_exts(slab);
+ 		if (!obj_exts)
+ 			return NULL;
+diff --git a/mm/slab_common.c b/mm/slab_common.c
+index 75e7d0e40..9be982f4c 100644
+--- a/mm/slab_common.c
++++ b/mm/slab_common.c
+@@ -989,12 +989,13 @@ void __init create_kmalloc_caches(void)
+ size_t __ksize(const void *object)
+ {
+ 	struct folio *folio;
++	struct kmem_cache *s;
+ 
+ 	if (unlikely(object == ZERO_SIZE_PTR))
+ 		return 0;
+ 
+-	folio = virt_to_folio(object);
+ 	if (unlikely(!is_slab_addr(object))) {
++		folio = virt_to_folio(object);
+ 		if (WARN_ON(folio_size(folio) <= KMALLOC_MAX_CACHE_SIZE))
+ 			return 0;
+ 		if (WARN_ON(object != folio_address(folio)))
+@@ -1002,11 +1003,13 @@ size_t __ksize(const void *object)
+ 		return folio_size(folio);
+ 	}
+ 
++	s = virt_to_slab(object)->slab_cache;
++
+ #ifdef CONFIG_SLUB_DEBUG
+-	skip_orig_size_check(folio_slab(folio)->slab_cache, object);
++	skip_orig_size_check(s, object);
+ #endif
+ 
+-	return slab_ksize(folio_slab(folio)->slab_cache);
++	return slab_ksize(s);
+ }
+ 
+ gfp_t kmalloc_fix_flags(gfp_t flags)
+diff --git a/mm/slub.c b/mm/slub.c
+index 98e12ca31..64b06fe4d 100644
+--- a/mm/slub.c
++++ b/mm/slub.c
+@@ -4772,13 +4772,13 @@ void kfree(const void *object)
+ 	if (unlikely(ZERO_OR_NULL_PTR(object)))
+ 		return;
+ 
+-	folio = virt_to_folio(object);
+ 	if (unlikely(!is_slab_addr(object))) {
++		folio = virt_to_folio(object);
+ 		free_large_kmalloc(folio, (void *)object);
+ 		return;
+ 	}
+ 
+-	slab = folio_slab(folio);
++	slab = virt_to_slab(object);
+ 	s = slab->slab_cache;
+ 	slab_free(s, slab, x, _RET_IP_);
+ }
+@@ -4810,25 +4810,23 @@ int build_detached_freelist(struct kmem_cache *s, size_t size,
+ {
+ 	int lookahead = 3;
+ 	void *object;
+-	struct folio *folio;
++	struct slab *slab;
+ 	size_t same;
+ 
+ 	object = p[--size];
+-	folio = virt_to_folio(object);
++	slab = virt_to_slab(object);
+ 	if (!s) {
+ 		/* Handle kalloc'ed objects */
+-		if (unlikely(!folio_test_slab(folio))) {
+-			free_large_kmalloc(folio, object);
++		if (unlikely(slab == NULL)) {
++			free_large_kmalloc(virt_to_folio(object), object);
+ 			df->slab = NULL;
+ 			return size;
+ 		}
+-		/* Derive kmem_cache from object */
+-		df->slab = folio_slab(folio);
+-		df->s = df->slab->slab_cache;
++		df->s = slab->slab_cache;
+ 	} else {
+-		df->slab = folio_slab(folio);
+ 		df->s = cache_from_obj(s, object); /* Support for memcg */
+ 	}
++	df->slab = slab;
+ 
+ 	/* Start new detached freelist */
+ 	df->tail = object;
+-- 
+2.50.1
+

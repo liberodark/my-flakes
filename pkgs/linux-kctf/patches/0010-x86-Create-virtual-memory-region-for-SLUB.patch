@@ -1,0 +1,186 @@
+From f7ce439669c6aaf474e3dc8dd53485dc971ea359 Mon Sep 17 00:00:00 2001
+From: liberodark <liberodark@gmail.com>
+Date: Wed, 26 Nov 2025 11:33:32 +0100
+Subject: [PATCH 10/18] x86: Create virtual memory region for SLUB
+
+---
+ Documentation/arch/x86/x86_64/mm.rst    |  4 ++--
+ arch/x86/include/asm/pgtable_64_types.h | 16 ++++++++++++++++
+ arch/x86/mm/init_64.c                   | 19 +++++++++++++++----
+ arch/x86/mm/kaslr.c                     |  9 +++++++++
+ arch/x86/mm/mm_internal.h               |  4 ++++
+ mm/slub.c                               |  4 ++++
+ security/Kconfig.hardening              |  2 ++
+ 7 files changed, 52 insertions(+), 6 deletions(-)
+
+diff --git a/Documentation/arch/x86/x86_64/mm.rst b/Documentation/arch/x86/x86_64/mm.rst
+index 35e5e18c8..121179537 100644
+--- a/Documentation/arch/x86/x86_64/mm.rst
++++ b/Documentation/arch/x86/x86_64/mm.rst
+@@ -57,7 +57,7 @@ Complete virtual memory map with 4-level page tables
+    fffffc0000000000 |   -4    TB | fffffdffffffffff |    2 TB | ... unused hole
+                     |            |                  |         | vaddr_end for KASLR
+    fffffe0000000000 |   -2    TB | fffffe7fffffffff |  0.5 TB | cpu_entry_area mapping
+-   fffffe8000000000 |   -1.5  TB | fffffeffffffffff |  0.5 TB | ... unused hole
++   fffffe8000000000 |   -1.5  TB | fffffeffffffffff |  0.5 TB | SLUB virtual memory
+    ffffff0000000000 |   -1    TB | ffffff7fffffffff |  0.5 TB | %esp fixup stacks
+    ffffff8000000000 | -512    GB | ffffffeeffffffff |  444 GB | ... unused hole
+    ffffffef00000000 |  -68    GB | fffffffeffffffff |   64 GB | EFI region mapping space
+@@ -116,7 +116,7 @@ Complete virtual memory map with 5-level page tables
+    fffffc0000000000 |   -4    TB | fffffdffffffffff |    2 TB | ... unused hole
+                     |            |                  |         | vaddr_end for KASLR
+    fffffe0000000000 |   -2    TB | fffffe7fffffffff |  0.5 TB | cpu_entry_area mapping
+-   fffffe8000000000 |   -1.5  TB | fffffeffffffffff |  0.5 TB | ... unused hole
++   fffffe8000000000 |   -1.5  TB | fffffeffffffffff |  0.5 TB | SLUB virtual memory
+    ffffff0000000000 |   -1    TB | ffffff7fffffffff |  0.5 TB | %esp fixup stacks
+    ffffff8000000000 | -512    GB | ffffffeeffffffff |  444 GB | ... unused hole
+    ffffffef00000000 |  -68    GB | fffffffeffffffff |   64 GB | EFI region mapping space
+diff --git a/arch/x86/include/asm/pgtable_64_types.h b/arch/x86/include/asm/pgtable_64_types.h
+index 746433efa..eea46c187 100644
+--- a/arch/x86/include/asm/pgtable_64_types.h
++++ b/arch/x86/include/asm/pgtable_64_types.h
+@@ -6,6 +6,7 @@
+ 
+ #ifndef __ASSEMBLY__
+ #include <linux/types.h>
++#include <linux/align.h>
+ #include <asm/kaslr.h>
+ 
+ /*
+@@ -206,6 +207,21 @@ extern unsigned int ptrs_per_p4d;
+ #define ESPFIX_PGD_ENTRY	_AC(-2, UL)
+ #define ESPFIX_BASE_ADDR	(ESPFIX_PGD_ENTRY << P4D_SHIFT)
+ 
++#ifdef CONFIG_SLAB_VIRTUAL
++#define SLAB_PGD_ENTRY		_AC(-3, UL)
++#define SLAB_BASE_ADDR		(SLAB_PGD_ENTRY << P4D_SHIFT)
++#define SLAB_END_ADDR		(SLAB_BASE_ADDR + P4D_SIZE)
++
++/*
++ * We need to define this here because we need it to compute SLAB_META_SIZE
++ * and including slab.h causes a dependency cycle.
++ */
++#define STRUCT_SLAB_SIZE (32 * sizeof(void *))
++#define SLAB_VPAGES ((SLAB_END_ADDR - SLAB_BASE_ADDR) / PAGE_SIZE)
++#define SLAB_META_SIZE ALIGN(SLAB_VPAGES * STRUCT_SLAB_SIZE, PAGE_SIZE)
++#define SLAB_DATA_BASE_ADDR (SLAB_BASE_ADDR + SLAB_META_SIZE)
++#endif /* CONFIG_SLAB_VIRTUAL */
++
+ #define CPU_ENTRY_AREA_PGD	_AC(-4, UL)
+ #define CPU_ENTRY_AREA_BASE	(CPU_ENTRY_AREA_PGD << P4D_SHIFT)
+ 
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index 63de8dbaa..566cf8405 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -1316,16 +1316,19 @@ static void __init register_page_bootmem_info(void)
+ }
+ 
+ /*
+- * Pre-allocates page-table pages for the vmalloc area in the kernel page-table.
++ * Pre-allocates page-table pages for the vmalloc and SLUB areas in the kernel
++ * page-table.
+  * Only the level which needs to be synchronized between all page-tables is
+  * allocated because the synchronization can be expensive.
+  */
+-static void __init preallocate_vmalloc_pages(void)
++static void __init preallocate_top_level_entries_range(unsigned long start,
++						       unsigned long end)
+ {
+ 	unsigned long addr;
+ 	const char *lvl;
+ 
+-	for (addr = VMALLOC_START; addr <= VMEMORY_END; addr = ALIGN(addr + 1, PGDIR_SIZE)) {
++
++	for (addr = start; addr <= end; addr = ALIGN(addr + 1, PGDIR_SIZE)) {
+ 		pgd_t *pgd = pgd_offset_k(addr);
+ 		p4d_t *p4d;
+ 		pud_t *pud;
+@@ -1365,6 +1368,14 @@ static void __init preallocate_vmalloc_pages(void)
+ 	panic("Failed to pre-allocate %s pages for vmalloc area\n", lvl);
+ }
+ 
++static void __init preallocate_top_level_entries(void)
++{
++	preallocate_top_level_entries_range(VMALLOC_START, VMEMORY_END);
++#ifdef CONFIG_SLAB_VIRTUAL
++	preallocate_top_level_entries_range(SLAB_BASE_ADDR, SLAB_END_ADDR - 1);
++#endif
++}
++
+ void __init mem_init(void)
+ {
+ 	pci_iommu_alloc();
+@@ -1388,7 +1399,7 @@ void __init mem_init(void)
+ 	if (get_gate_vma(&init_mm))
+ 		kclist_add(&kcore_vsyscall, (void *)VSYSCALL_ADDR, PAGE_SIZE, KCORE_USER);
+ 
+-	preallocate_vmalloc_pages();
++	preallocate_top_level_entries();
+ }
+ 
+ int kernel_set_to_readonly;
+diff --git a/arch/x86/mm/kaslr.c b/arch/x86/mm/kaslr.c
+index e0b0ec0f8..d969eb2ec 100644
+--- a/arch/x86/mm/kaslr.c
++++ b/arch/x86/mm/kaslr.c
+@@ -162,6 +162,15 @@ void __init kernel_randomize_memory(void)
+ 		vaddr = round_up(vaddr + 1, PUD_SIZE);
+ 		remain_entropy -= entropy;
+ 	}
++
++#ifdef CONFIG_SLAB_VIRTUAL
++	/*
++	 * slub_addr_base is initialized separately from the
++	 * kaslr_memory_regions because it comes after CPU_ENTRY_AREA_BASE.
++	 */
++	prandom_bytes_state(&rand_state, &rand, sizeof(rand));
++	slub_addr_base += (rand & ((1UL << 36) - PAGE_SIZE));
++#endif
+ }
+ 
+ void __meminit init_trampoline_kaslr(void)
+diff --git a/arch/x86/mm/mm_internal.h b/arch/x86/mm/mm_internal.h
+index 3f37b5c80..fafb79b7e 100644
+--- a/arch/x86/mm/mm_internal.h
++++ b/arch/x86/mm/mm_internal.h
+@@ -25,4 +25,8 @@ void update_cache_mode_entry(unsigned entry, enum page_cache_mode cache);
+ 
+ extern unsigned long tlb_single_page_flush_ceiling;
+ 
++#ifdef CONFIG_SLAB_VIRTUAL
++extern unsigned long slub_addr_base;
++#endif
++
+ #endif	/* __X86_MM_INTERNAL_H */
+diff --git a/mm/slub.c b/mm/slub.c
+index f7b8263cf..d878801d7 100644
+--- a/mm/slub.c
++++ b/mm/slub.c
+@@ -182,6 +182,10 @@
+  * 			the fast path and disables lockless freelists.
+  */
+ 
++#ifdef CONFIG_SLAB_VIRTUAL
++unsigned long slub_addr_base = SLAB_DATA_BASE_ADDR;
++#endif /* CONFIG_SLAB_VIRTUAL */
++
+ /*
+  * We could simply use migrate_disable()/enable() but as long as it's a
+  * function call even on !PREEMPT_RT, use inline preempt_disable() there.
+diff --git a/security/Kconfig.hardening b/security/Kconfig.hardening
+index c0062c5e7..537b5d2ff 100644
+--- a/security/Kconfig.hardening
++++ b/security/Kconfig.hardening
+@@ -380,6 +380,8 @@ config GCC_PLUGIN_RANDSTRUCT
+ 
+ config SLAB_VIRTUAL
+ 	bool "Allocate slab objects from virtual memory"
++	# For virtual memory region allocation
++	depends on X86_64
+ 	depends on SLUB && !SLUB_TINY
+ 	# If KFENCE support is desired, it could be implemented on top of our
+ 	# virtual memory allocation facilities
+-- 
+2.50.1
+

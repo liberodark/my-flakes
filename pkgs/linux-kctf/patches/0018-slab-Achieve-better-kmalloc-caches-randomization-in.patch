@@ -1,0 +1,29 @@
+From 8a1e92b1873de1f678dfe3dbe2604aab5b888b9d Mon Sep 17 00:00:00 2001
+From: liberodark <liberodark@gmail.com>
+Date: Wed, 26 Nov 2025 11:33:33 +0100
+Subject: [PATCH 18/18] slab: Achieve better kmalloc caches randomization in
+
+---
+ mm/slub.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/mm/slub.c b/mm/slub.c
+index 393c16446..55f701d6f 100644
+--- a/mm/slub.c
++++ b/mm/slub.c
+@@ -5326,9 +5326,9 @@ void *__kvmalloc_node_noprof(DECL_BUCKET_PARAMS(size, b), gfp_t flags, int node)
+ 	 * It doesn't really make sense to fallback to vmalloc for sub page
+ 	 * requests
+ 	 */
+-	ret = __kmalloc_node_noprof(PASS_BUCKET_PARAMS(size, b),
+-				    kmalloc_gfp_adjust(flags, size),
+-				    node);
++	ret = __do_kmalloc_node(size, PASS_BUCKET_PARAM(b),
++				kmalloc_gfp_adjust(flags, size),
++				node, _RET_IP_);
+ 	if (ret || size <= PAGE_SIZE)
+ 		return ret;
+ 
+-- 
+2.50.1
+

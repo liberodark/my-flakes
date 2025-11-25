@@ -1,0 +1,69 @@
+From 5991aa7019a0fac4534677407e510c96cd928004 Mon Sep 17 00:00:00 2001
+From: liberodark <liberodark@gmail.com>
+Date: Wed, 26 Nov 2025 11:23:23 +0100
+Subject: [PATCH 05/18] mm/slub: create folio_set/clear_slab helpers
+
+---
+ mm/slub.c | 32 ++++++++++++++++++++++----------
+ 1 file changed, 22 insertions(+), 10 deletions(-)
+
+diff --git a/mm/slub.c b/mm/slub.c
+index 64b06fe4d..b867b102e 100644
+--- a/mm/slub.c
++++ b/mm/slub.c
+@@ -2436,6 +2436,26 @@ static void *setup_object(struct kmem_cache *s, void *object)
+ /*
+  * Slab allocation and freeing
+  */
++
++static inline void folio_set_slab(struct folio *folio, struct slab *slab)
++{
++	__folio_set_slab(folio);
++	/* Make the flag visible before any changes to folio->mapping */
++	smp_wmb();
++
++	if (page_is_pfmemalloc(folio_page(folio, 0)))
++		slab_set_pfmemalloc(slab);
++}
++
++static inline void folio_clear_slab(struct folio *folio, struct slab *slab)
++{
++	__slab_clear_pfmemalloc(slab);
++	folio->mapping = NULL;
++	/* Make the mapping reset visible before clearing the flag */
++	smp_wmb();
++	__folio_clear_slab(folio);
++}
++
+ static inline struct slab *alloc_slab_page(gfp_t flags, int node,
+ 		struct kmem_cache_order_objects oo)
+ {
+@@ -2452,11 +2472,7 @@ static inline struct slab *alloc_slab_page(gfp_t flags, int node,
+ 		return NULL;
+ 
+ 	slab = folio_slab(folio);
+-	__folio_set_slab(folio);
+-	/* Make the flag visible before any changes to folio->mapping */
+-	smp_wmb();
+-	if (folio_is_pfmemalloc(folio))
+-		slab_set_pfmemalloc(slab);
++	folio_set_slab(folio, slab);
+ 
+ 	return slab;
+ }
+@@ -2678,11 +2694,7 @@ static void __free_slab(struct kmem_cache *s, struct slab *slab)
+ 	int order = folio_order(folio);
+ 	int pages = 1 << order;
+ 
+-	__slab_clear_pfmemalloc(slab);
+-	folio->mapping = NULL;
+-	/* Make the mapping reset visible before clearing the flag */
+-	smp_wmb();
+-	__folio_clear_slab(folio);
++	folio_clear_slab(folio, slab);
+ 	mm_account_reclaimed_pages(pages);
+ 	unaccount_slab(slab, order, s);
+ 	__free_pages(&folio->page, order);
+-- 
+2.50.1
+

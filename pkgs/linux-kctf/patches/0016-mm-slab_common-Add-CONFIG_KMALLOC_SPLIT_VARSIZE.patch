@@ -1,0 +1,239 @@
+From f23a955998909b5433b176e5148f718ab1a12b47 Mon Sep 17 00:00:00 2001
+From: liberodark <liberodark@gmail.com>
+Date: Wed, 26 Nov 2025 11:33:33 +0100
+Subject: [PATCH 16/18] mm/slab_common: Add CONFIG_KMALLOC_SPLIT_VARSIZE
+
+---
+ include/linux/slab.h       |  19 +++++--
+ mm/slab.h                  |   2 +-
+ mm/slab_common.c           | 100 ++++++++++++++++++++++++-------------
+ security/Kconfig.hardening |  13 +++++
+ 4 files changed, 95 insertions(+), 39 deletions(-)
+
+diff --git a/include/linux/slab.h b/include/linux/slab.h
+index cbc5339c3..537cdcc5c 100644
+--- a/include/linux/slab.h
++++ b/include/linux/slab.h
+@@ -575,11 +575,11 @@ enum kmalloc_cache_type {
+ #ifndef CONFIG_ZONE_DMA
+ 	KMALLOC_DMA = KMALLOC_NORMAL,
+ #endif
++	KMALLOC_RANDOM_START = KMALLOC_NORMAL,
++	KMALLOC_RANDOM_END = KMALLOC_RANDOM_START + RANDOM_KMALLOC_CACHES_NR,
+ #ifndef CONFIG_MEMCG
+ 	KMALLOC_CGROUP = KMALLOC_NORMAL,
+ #endif
+-	KMALLOC_RANDOM_START = KMALLOC_NORMAL,
+-	KMALLOC_RANDOM_END = KMALLOC_RANDOM_START + RANDOM_KMALLOC_CACHES_NR,
+ #ifdef CONFIG_SLUB_TINY
+ 	KMALLOC_RECLAIM = KMALLOC_NORMAL,
+ #else
+@@ -593,9 +593,22 @@ enum kmalloc_cache_type {
+ #endif
+ 	KMALLOC_CGROUP_RANDOM_START = KMALLOC_CGROUP,
+ 	KMALLOC_CGROUP_RANDOM_END = KMALLOC_CGROUP_RANDOM_START + RANDOM_KMALLOC_CACHES_NR,
+-	NR_KMALLOC_TYPES
++
++	NR_KMALLOC_TYPES_BASE,
+ };
+ 
++#ifdef CONFIG_KMALLOC_SPLIT_VARSIZE
++/*
++ * Each type exists twice:
++ * Once for fixed-size allocations, once for variably-size allocations
++ */
++#define NR_KMALLOC_TYPES (2 * NR_KMALLOC_TYPES_BASE)
++#define KMALLOC_VARSIZE_OFFSET NR_KMALLOC_TYPES_BASE
++#else
++#define NR_KMALLOC_TYPES NR_KMALLOC_TYPES_BASE
++#define KMALLOC_VARSIZE_OFFSET 0
++#endif
++
+ typedef struct kmem_cache * kmem_buckets[KMALLOC_SHIFT_HIGH + 1];
+ 
+ extern kmem_buckets kmalloc_caches[NR_KMALLOC_TYPES];
+diff --git a/mm/slab.h b/mm/slab.h
+index 7a15c97d4..69c78b934 100644
+--- a/mm/slab.h
++++ b/mm/slab.h
+@@ -561,7 +561,7 @@ kmalloc_slab(size_t size, kmem_buckets *b, gfp_t flags, unsigned long caller)
+ 	unsigned int index;
+ 
+ 	if (!b)
+-		b = &kmalloc_caches[kmalloc_type(flags, caller)];
++		b = &kmalloc_caches[kmalloc_type(flags, caller) + KMALLOC_VARSIZE_OFFSET];
+ 	if (size <= 192)
+ 		index = kmalloc_size_index[size_index_elem(size)];
+ 	else
+diff --git a/mm/slab_common.c b/mm/slab_common.c
+index 9be982f4c..332c02ff8 100644
+--- a/mm/slab_common.c
++++ b/mm/slab_common.c
+@@ -754,53 +754,69 @@ size_t kmalloc_size_roundup(size_t size)
+ EXPORT_SYMBOL(kmalloc_size_roundup);
+ 
+ #ifdef CONFIG_ZONE_DMA
+-#define KMALLOC_DMA_NAME(sz)	.name[KMALLOC_DMA] = "dma-kmalloc-" #sz,
++#define KMALLOC_DMA_NAME(prefix, off, sz) \
++	.name[off + KMALLOC_DMA] = prefix "dma-kmalloc-" #sz,
+ #else
+-#define KMALLOC_DMA_NAME(sz)
+-#endif
+-
+-#ifdef CONFIG_MEMCG
+-#define KMALLOC_CGROUP_NAME(sz)	.name[KMALLOC_CGROUP] = "kmalloc-cg-" #sz, \
+-	KMALLOC_RANDOM_NAME(RANDOM_KMALLOC_CACHES_NR, sz, KMALLOC_CGROUP_RANDOM_START, "cg-")
+-#else
+-#define KMALLOC_CGROUP_NAME(sz)
++#define KMALLOC_DMA_NAME(prefix, off, sz)
+ #endif
+ 
+ #ifndef CONFIG_SLUB_TINY
+-#define KMALLOC_RCL_NAME(sz)	.name[KMALLOC_RECLAIM] = "kmalloc-rcl-" #sz,
++#define KMALLOC_RCL_NAME(prefix, off, sz)	.name[off + KMALLOC_RECLAIM] = prefix "kmalloc-rcl-" #sz,
+ #else
+-#define KMALLOC_RCL_NAME(sz)
++#define KMALLOC_RCL_NAME(prefix, off, sz)
+ #endif
+ 
+ #ifdef CONFIG_RANDOM_KMALLOC_CACHES
+ #define __KMALLOC_RANDOM_CONCAT(a, b) a ## b
+-#define KMALLOC_RANDOM_NAME(N, sz, base, type) __KMALLOC_RANDOM_CONCAT(KMA_RAND_, N)(sz, base, type)
+-#define KMA_RAND_1(sz, base, type)                        .name[base +  1] = "kmalloc-rnd-01-" type #sz,
+-#define KMA_RAND_2(sz, base, type)  KMA_RAND_1(sz, base, type)  .name[base +  2] = "kmalloc-rnd-02-" type #sz,
+-#define KMA_RAND_3(sz, base, type)  KMA_RAND_2(sz, base, type)  .name[base +  3] = "kmalloc-rnd-03-" type #sz,
+-#define KMA_RAND_4(sz, base, type)  KMA_RAND_3(sz, base, type)  .name[base +  4] = "kmalloc-rnd-04-" type #sz,
+-#define KMA_RAND_5(sz, base, type)  KMA_RAND_4(sz, base, type)  .name[base +  5] = "kmalloc-rnd-05-" type #sz,
+-#define KMA_RAND_6(sz, base, type)  KMA_RAND_5(sz, base, type)  .name[base +  6] = "kmalloc-rnd-06-" type #sz,
+-#define KMA_RAND_7(sz, base, type)  KMA_RAND_6(sz, base, type)  .name[base +  7] = "kmalloc-rnd-07-" type #sz,
+-#define KMA_RAND_8(sz, base, type)  KMA_RAND_7(sz, base, type)  .name[base +  8] = "kmalloc-rnd-08-" type #sz,
+-#define KMA_RAND_9(sz, base, type)  KMA_RAND_8(sz, base, type)  .name[base +  9] = "kmalloc-rnd-09-" type #sz,
+-#define KMA_RAND_10(sz, base, type) KMA_RAND_9(sz, base, type)  .name[base + 10] = "kmalloc-rnd-10-" type #sz,
+-#define KMA_RAND_11(sz, base, type) KMA_RAND_10(sz, base, type) .name[base + 11] = "kmalloc-rnd-11-" type #sz,
+-#define KMA_RAND_12(sz, base, type) KMA_RAND_11(sz, base, type) .name[base + 12] = "kmalloc-rnd-12-" type #sz,
+-#define KMA_RAND_13(sz, base, type) KMA_RAND_12(sz, base, type) .name[base + 13] = "kmalloc-rnd-13-" type #sz,
+-#define KMA_RAND_14(sz, base, type) KMA_RAND_13(sz, base, type) .name[base + 14] = "kmalloc-rnd-14-" type #sz,
+-#define KMA_RAND_15(sz, base, type) KMA_RAND_14(sz, base, type) .name[base + 15] = "kmalloc-rnd-15-" type #sz,
++#define KMALLOC_RANDOM_NAME(prefix, N, sz, base, offset, type) __KMALLOC_RANDOM_CONCAT(KMA_RAND_, N)(prefix, sz, base, offset, type)
++#define KMA_RAND_1(prefix, sz, base, offset, type)                                              .name[base + offset +  1] = prefix "kmalloc-rnd-01-" type #sz,
++#define KMA_RAND_2(prefix, sz, base, offset, type)  KMA_RAND_1(prefix, sz, base, offset, type)  .name[base + offset +  2] = prefix "kmalloc-rnd-02-" type #sz,
++#define KMA_RAND_3(prefix, sz, base, offset, type)  KMA_RAND_2(prefix, sz, base, offset, type)  .name[base + offset +  3] = prefix "kmalloc-rnd-03-" type #sz,
++#define KMA_RAND_4(prefix, sz, base, offset, type)  KMA_RAND_3(prefix, sz, base, offset, type)  .name[base + offset +  4] = prefix "kmalloc-rnd-04-" type #sz,
++#define KMA_RAND_5(prefix, sz, base, offset, type)  KMA_RAND_4(prefix, sz, base, offset, type)  .name[base + offset +  5] = prefix "kmalloc-rnd-05-" type #sz,
++#define KMA_RAND_6(prefix, sz, base, offset, type)  KMA_RAND_5(prefix, sz, base, offset, type)  .name[base + offset +  6] = prefix "kmalloc-rnd-06-" type #sz,
++#define KMA_RAND_7(prefix, sz, base, offset, type)  KMA_RAND_6(prefix, sz, base, offset, type)  .name[base + offset +  7] = prefix "kmalloc-rnd-07-" type #sz,
++#define KMA_RAND_8(prefix, sz, base, offset, type)  KMA_RAND_7(prefix, sz, base, offset, type)  .name[base + offset +  8] = prefix "kmalloc-rnd-08-" type #sz,
++#define KMA_RAND_9(prefix, sz, base, offset, type)  KMA_RAND_8(prefix, sz, base, offset, type)  .name[base + offset +  9] = prefix "kmalloc-rnd-09-" type #sz,
++#define KMA_RAND_10(prefix, sz, base, offset, type) KMA_RAND_9(prefix, sz, base, offset, type)  .name[base + offset + 10] = prefix "kmalloc-rnd-10-" type #sz,
++#define KMA_RAND_11(prefix, sz, base, offset, type) KMA_RAND_10(prefix, sz, base, offset, type) .name[base + offset + 11] = prefix "kmalloc-rnd-11-" type #sz,
++#define KMA_RAND_12(prefix, sz, base, offset, type) KMA_RAND_11(prefix, sz, base, offset, type) .name[base + offset + 12] = prefix "kmalloc-rnd-12-" type #sz,
++#define KMA_RAND_13(prefix, sz, base, offset, type) KMA_RAND_12(prefix, sz, base, offset, type) .name[base + offset + 13] = prefix "kmalloc-rnd-13-" type #sz,
++#define KMA_RAND_14(prefix, sz, base, offset, type) KMA_RAND_13(prefix, sz, base, offset, type) .name[base + offset + 14] = prefix "kmalloc-rnd-14-" type #sz,
++#define KMA_RAND_15(prefix, sz, base, offset, type) KMA_RAND_14(prefix, sz, base, offset, type) .name[base + offset + 15] = prefix "kmalloc-rnd-15-" type #sz,
+ #else // CONFIG_RANDOM_KMALLOC_CACHES
+-#define KMALLOC_RANDOM_NAME(N, sz, base, type)
++#define KMALLOC_RANDOM_NAME(prefix, N, sz, base, offset, type)
++#endif
++
++#define KMALLOC_NORMAL_NAME(prefix, off, sz) \
++	.name[off + KMALLOC_NORMAL]  = prefix "kmalloc-" #sz, \
++	KMALLOC_RANDOM_NAME(prefix, RANDOM_KMALLOC_CACHES_NR, sz, KMALLOC_RANDOM_START, off, "")
++
++#ifdef CONFIG_MEMCG
++#define KMALLOC_CGROUP_NAME(prefix, off, sz) \
++	.name[off + KMALLOC_CGROUP] = prefix "kmalloc-cg-" #sz, \
++	KMALLOC_RANDOM_NAME(prefix, RANDOM_KMALLOC_CACHES_NR, sz, KMALLOC_CGROUP_RANDOM_START, off, "cg-")
++#else
++#define KMALLOC_CGROUP_NAME(prefix, off, sz)
++#endif
++
++#define KMALLOC_ALL_NAMES(prefix, off, sz)	\
++	KMALLOC_NORMAL_NAME(prefix, off, sz)	\
++	KMALLOC_RCL_NAME(prefix, off, sz)	\
++	KMALLOC_CGROUP_NAME(prefix, off, sz)	\
++	KMALLOC_DMA_NAME(prefix, off, sz)
++
++#ifdef CONFIG_KMALLOC_SPLIT_VARSIZE
++#define KMALLOC_VARSIZE_NAMES(sz) \
++	KMALLOC_ALL_NAMES("dyn-", KMALLOC_VARSIZE_OFFSET, sz)
++#else
++#define KMALLOC_VARSIZE_NAMES(sz)
+ #endif
+ 
+ #define INIT_KMALLOC_INFO(__size, __short_size)			\
+ {								\
+-	.name[KMALLOC_NORMAL]  = "kmalloc-" #__short_size,	\
+-	KMALLOC_RCL_NAME(__short_size)				\
+-	KMALLOC_CGROUP_NAME(__short_size)			\
+-	KMALLOC_DMA_NAME(__short_size)				\
+-	KMALLOC_RANDOM_NAME(RANDOM_KMALLOC_CACHES_NR, __short_size, KMALLOC_RANDOM_START, "")	\
++	KMALLOC_ALL_NAMES("", 0, __short_size)			\
++	KMALLOC_VARSIZE_NAMES(__short_size)			\
+ 	.size = __size,						\
+ }
+ 
+@@ -905,6 +921,9 @@ new_kmalloc_cache(int idx, enum kmalloc_cache_type type)
+ 	} else if (IS_ENABLED(CONFIG_MEMCG) && (type == KMALLOC_CGROUP)) {
+ 		if (mem_cgroup_kmem_disabled()) {
+ 			kmalloc_caches[type][idx] = kmalloc_caches[KMALLOC_NORMAL][idx];
++			if (IS_ENABLED(CONFIG_KMALLOC_SPLIT_VARSIZE))
++				kmalloc_caches[type + KMALLOC_VARSIZE_OFFSET][idx] =
++				kmalloc_caches[KMALLOC_NORMAL + KMALLOC_VARSIZE_OFFSET][idx];
+ 			return;
+ 		}
+ 		flags |= SLAB_ACCOUNT;
+@@ -933,8 +952,19 @@ new_kmalloc_cache(int idx, enum kmalloc_cache_type type)
+ 		kmalloc_caches[type][aligned_idx] = create_kmalloc_cache(
+ 					kmalloc_info[aligned_idx].name[type],
+ 					aligned_size, flags);
+-	if (idx != aligned_idx)
++
++	if (IS_ENABLED(CONFIG_KMALLOC_SPLIT_VARSIZE))
++		kmalloc_caches[type + KMALLOC_VARSIZE_OFFSET][aligned_idx] =
++			create_kmalloc_cache(
++				kmalloc_info[aligned_idx].name[type + KMALLOC_VARSIZE_OFFSET],
++				aligned_size, flags);
++
++	if (idx != aligned_idx) {
+ 		kmalloc_caches[type][idx] = kmalloc_caches[type][aligned_idx];
++		if (IS_ENABLED(CONFIG_KMALLOC_SPLIT_VARSIZE))
++			kmalloc_caches[type + KMALLOC_VARSIZE_OFFSET][idx] =
++				kmalloc_caches[type + KMALLOC_VARSIZE_OFFSET][aligned_idx];
++	}
+ }
+ 
+ /*
+@@ -950,7 +980,7 @@ void __init create_kmalloc_caches(void)
+ 	/*
+ 	 * Including KMALLOC_CGROUP if CONFIG_MEMCG defined
+ 	 */
+-	for (type = KMALLOC_NORMAL; type < NR_KMALLOC_TYPES; type++) {
++	for (type = KMALLOC_NORMAL; type < NR_KMALLOC_TYPES_BASE; type++) {
+ 		/* Caches that are NOT of the two-to-the-power-of size. */
+ 		if (KMALLOC_MIN_SIZE <= 32)
+ 			new_kmalloc_cache(1, type);
+diff --git a/security/Kconfig.hardening b/security/Kconfig.hardening
+index 537b5d2ff..b35d3ea07 100644
+--- a/security/Kconfig.hardening
++++ b/security/Kconfig.hardening
+@@ -397,4 +397,17 @@ config SLAB_VIRTUAL
+ 	  virtual memory used as a slab cache is never reused to store
+ 	  objects from other slab caches or non-slab data.
+ 
++config KMALLOC_SPLIT_VARSIZE
++	bool "Use separate caches for kmalloc() allocations having variable size"
++	depends on (SLAB || (SLUB && !SLUB_TINY)) && !SLAB_MERGE_DEFAULT
++	help
++	  This option splits each kmalloc() cache into two. One is used for fixed-size
++	  objects and another for objects whose size can vary at runtime.
++
++	  This prevents usermode attackers from abusing syscalls that can allocate
++	  arbitrarily-sized objects to exploit memory corruption. Many of these
++	  objects (e.g. struct msg_msg) contain attacker-controlled amounts of
++	  arbitrary data and are often used in kernel exploits because they can be
++	  allocated in any kmalloc() cache.
++
+ endmenu
+-- 
+2.50.1
+

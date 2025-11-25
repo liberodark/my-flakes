@@ -1,0 +1,44 @@
+From 8cc056d306c639216648b6450334937c601980b8 Mon Sep 17 00:00:00 2001
+From: liberodark <liberodark@gmail.com>
+Date: Wed, 26 Nov 2025 11:23:23 +0100
+Subject: [PATCH 06/18] mm/slub: pass additional args to alloc_slab_page
+
+---
+ mm/slub.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/mm/slub.c b/mm/slub.c
+index b867b102e..698e14d88 100644
+--- a/mm/slub.c
++++ b/mm/slub.c
+@@ -2456,7 +2456,8 @@ static inline void folio_clear_slab(struct folio *folio, struct slab *slab)
+ 	__folio_clear_slab(folio);
+ }
+ 
+-static inline struct slab *alloc_slab_page(gfp_t flags, int node,
++static inline struct slab *alloc_slab_page(struct kmem_cache *s,
++		gfp_t meta_flags, gfp_t flags, int node,
+ 		struct kmem_cache_order_objects oo)
+ {
+ 	struct folio *folio;
+@@ -2630,7 +2631,7 @@ static struct slab *allocate_slab(struct kmem_cache *s, gfp_t flags, int node)
+ 	if ((alloc_gfp & __GFP_DIRECT_RECLAIM) && oo_order(oo) > oo_order(s->min))
+ 		alloc_gfp = (alloc_gfp | __GFP_NOMEMALLOC) & ~__GFP_RECLAIM;
+ 
+-	slab = alloc_slab_page(alloc_gfp, node, oo);
++	slab = alloc_slab_page(s, flags, alloc_gfp, node, oo);
+ 	if (unlikely(!slab)) {
+ 		oo = s->min;
+ 		alloc_gfp = flags;
+@@ -2638,7 +2639,7 @@ static struct slab *allocate_slab(struct kmem_cache *s, gfp_t flags, int node)
+ 		 * Allocation may have failed due to fragmentation.
+ 		 * Try a lower order alloc if possible
+ 		 */
+-		slab = alloc_slab_page(alloc_gfp, node, oo);
++		slab = alloc_slab_page(s, flags, alloc_gfp, node, oo);
+ 		if (unlikely(!slab))
+ 			return NULL;
+ 		stat(s, ORDER_FALLBACK);
+-- 
+2.50.1
+

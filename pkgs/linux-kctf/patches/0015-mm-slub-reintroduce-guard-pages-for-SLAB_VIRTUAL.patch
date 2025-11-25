@@ -1,0 +1,25 @@
+From f50506084be9623d4b9312a58e5b1bedd7c459cd Mon Sep 17 00:00:00 2001
+From: liberodark <liberodark@gmail.com>
+Date: Wed, 26 Nov 2025 11:33:33 +0100
+Subject: [PATCH 15/18] mm/slub: reintroduce guard pages for SLAB_VIRTUAL
+
+---
+ mm/slub.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mm/slub.c b/mm/slub.c
+index 0f81073d3..3fbd79672 100644
+--- a/mm/slub.c
++++ b/mm/slub.c
+@@ -2650,7 +2650,7 @@ static struct slab *alloc_slab_meta(unsigned int order, gfp_t gfp_flags)
+ 	 * relaxed based on the alignment requirements of the objects being
+ 	 * allocated, but for now, we behave like the page allocator would.
+ 	 */
+-	data_range_start = ALIGN(old_base, alloc_size);
++	data_range_start = ALIGN(old_base + PAGE_SIZE, alloc_size);
+ 	data_range_end = data_range_start + alloc_size;
+ 
+ 	valid_start = data_range_start >= SLAB_DATA_BASE_ADDR &&
+-- 
+2.50.1
+
