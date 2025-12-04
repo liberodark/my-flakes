@@ -12,7 +12,7 @@
   enet,
   fetchgit,
   fetchurl,
-  ffmpeg-headless,
+  ffmpeg_7-headless,
   fmt,
   glslang,
   libopus,
@@ -113,7 +113,7 @@ stdenv.mkDerivation (finalAttrs: {
     # intentionally omitted: dynarmic - prefer vendored version for compatibility
     enet
 
-    ffmpeg-headless
+    ffmpeg_7-headless
     fmt
     # intentionally omitted: gamemode - loaded dynamically at runtime
     # intentionally omitted: httplib - upstream requires an older version than what we have
@@ -174,6 +174,12 @@ stdenv.mkDerivation (finalAttrs: {
 
     (lib.cmakeFeature "TITLE_BAR_FORMAT_IDLE" "${finalAttrs.pname} | ${finalAttrs.version} (nixpkgs) {}")
     (lib.cmakeFeature "TITLE_BAR_FORMAT_RUNNING" "${finalAttrs.pname} | ${finalAttrs.version} (nixpkgs) | {}")
+
+    # Qt6 headers path
+    (lib.cmakeFeature "CMAKE_CXX_FLAGS" "-I${qtbase}/include/QtGui/${qtbase.version}/QtGui")
+
+    # Allow older CMake policy
+    (lib.cmakeFeature "CMAKE_POLICY_VERSION_MINIMUM" "3.5")
   ];
 
   env = {
