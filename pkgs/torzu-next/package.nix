@@ -80,13 +80,13 @@ let
 in
 
 stdenv.mkDerivation (finalAttrs: {
-  pname = "torzu";
-  version = "unstable-2025-10-16";
+  pname = "torzu-next";
+  version = "unstable-2025-12-07";
 
   src = fetchgit {
     url = "https://git.ynh.ovh/liberodark/torzu.git";
-    rev = "ff8ac031299abda5f64c1a7f18e44d8762b675f3";
-    hash = "sha256-5KKy+w3WQs3QAzCnZWyhCdGZUCKKZUqdtP8Wb25HAdA=";
+    rev = "a3046c69429fb126763f4c73663e4c809fa2e65c";
+    hash = "sha256-vfBLyyClzRkt2IHswO0XYYwWF8uSwcVMmTVxhTXd1H0=";
     fetchSubmodules = true;
   };
 
@@ -173,9 +173,6 @@ stdenv.mkDerivation (finalAttrs: {
 
     (lib.cmakeFeature "TITLE_BAR_FORMAT_IDLE" "${finalAttrs.pname} | ${finalAttrs.version} (nixpkgs) {}")
     (lib.cmakeFeature "TITLE_BAR_FORMAT_RUNNING" "${finalAttrs.pname} | ${finalAttrs.version} (nixpkgs) | {}")
-
-    # Qt6 headers path
-    (lib.cmakeFeature "CMAKE_CXX_FLAGS" "-I${qtbase}/include/QtGui/${qtbase.version}/QtGui")
 
     # Allow older CMake policy
     (lib.cmakeFeature "CMAKE_POLICY_VERSION_MINIMUM" "3.5")

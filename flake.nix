@@ -22,6 +22,7 @@
         citron = pkgs.callPackage ./pkgs/citron/package.nix { };
         suyu = pkgs.callPackage ./pkgs/suyu/package.nix { };
         torzu = pkgs.callPackage ./pkgs/torzu/package.nix { };
+        torzu-next = pkgs.callPackage ./pkgs/torzu-next/package.nix { };
         bore-scheduler = pkgs.callPackage ./pkgs/bore-scheduler/package.nix { };
         linux-kctf = pkgs.callPackage ./pkgs/linux-kctf/package.nix { };
         linux-jovian = {
@@ -35,6 +36,7 @@
           citron = citron;
           suyu = suyu;
           torzu = torzu;
+          torzu-next = torzu-next;
 
           # Kernel
           linuxPackages_6_6_bore = bore-scheduler.linuxPackages_6_6_bore.kernel;
@@ -67,6 +69,10 @@
           };
           torzu = flake-utils.lib.mkApp {
             drv = torzu;
+            name = "yuzu";
+          };
+          torzu-next = flake-utils.lib.mkApp {
+            drv = torzu-next;
             name = "yuzu";
           };
         };
