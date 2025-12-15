@@ -35,7 +35,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: cachix/install-nix-action@v31.8.4
+      - uses: cachix/install-nix-action@v31.9.0
         with:
           install_url: https://nixos.org/nix/install
           extra_nix_config: |
