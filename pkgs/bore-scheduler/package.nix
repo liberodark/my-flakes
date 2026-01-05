@@ -3,7 +3,7 @@
   fetchFromGitHub,
   linuxPackages_6_6,
   linuxPackages_6_12,
-  linuxPackages_6_17,
+  linuxPackages_6_18,
   ...
 }:
 let
@@ -11,8 +11,8 @@ let
   bore-scheduler = fetchFromGitHub {
     owner = "firelzrd";
     repo = "bore-scheduler";
-    rev = "10bd04bccaec437a0a3c20a0594c42264030cd3e";
-    hash = "sha256-B3aN1eDqEnZRETttrvCsdMl6JTFaMzcAFgHrSTJf46k=";
+    rev = "69c9409354ad8be29280e97ceccb507d2c394be1";
+    hash = "sha256-Z1pPBStUobXhBLAN0866ugG7gjHKSEelPWPgtrlfO2E=";
   };
 
   kernelPatchInfo = {
@@ -24,8 +24,8 @@ let
       revision = "37";
       separator = "-bore";
     };
-    "6.17" = {
-      revision = "4";
+    "6.18" = {
+      revision = "2";
       separator = "-bore";
     };
   };
@@ -48,16 +48,10 @@ let
         patch = "${bore-scheduler}/patches/stable/linux-${kernelVersion}-bore/${patchFileName}";
       }
     ]
-    ++ lib.optionals (kernelVersion != "6.17") [
+    ++ lib.optionals (kernelVersion != "6.18") [
       {
         name = "bore-scheduler-smt";
         patch = "${bore-scheduler}/patches/stable/linux-${kernelVersion}-bore/0002-sched-fair-Prefer-full-idle-SMT-cores.patch";
-      }
-    ]
-    ++ lib.optionals (kernelVersion == "6.17") [
-      {
-        name = "bore-prefer-previous-cpu";
-        patch = "${bore-scheduler}/patches/stable/linux-${kernelVersion}-bore/0002-Prefer-the-previous-cpu-for-wakeup-v6.patch";
       }
     ];
 
@@ -85,5 +79,5 @@ in
 {
   linuxPackages_6_6_bore = makeKernelPackage linuxPackages_6_6 "6.6";
   linuxPackages_6_12_bore = makeKernelPackage linuxPackages_6_12 "6.12";
-  linuxPackages_6_17_bore = makeKernelPackage linuxPackages_6_17 "6.17";
+  linuxPackages_6_18_bore = makeKernelPackage linuxPackages_6_18 "6.18";
 }

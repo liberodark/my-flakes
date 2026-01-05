@@ -41,7 +41,7 @@
           # Kernel
           linuxPackages_6_6_bore = bore-scheduler.linuxPackages_6_6_bore.kernel;
           linuxPackages_6_12_bore = bore-scheduler.linuxPackages_6_12_bore.kernel;
-          linuxPackages_6_17_bore = bore-scheduler.linuxPackages_6_17_bore.kernel;
+          linuxPackages_6_18_bore = bore-scheduler.linuxPackages_6_18_bore.kernel;
           linuxPackages_6_12_kctf = linux-kctf.linuxPackages_6_12_kctf.kernel;
           linuxPackages_jovian = linux-jovian.linuxPackages_jovian.kernel;
         };
@@ -49,7 +49,7 @@
         kernelPackages = {
           linuxPackages_6_6_bore = bore-scheduler.linuxPackages_6_6_bore;
           linuxPackages_6_12_bore = bore-scheduler.linuxPackages_6_12_bore;
-          linuxPackages_6_17_bore = bore-scheduler.linuxPackages_6_17_bore;
+          linuxPackages_6_18_bore = bore-scheduler.linuxPackages_6_18_bore;
           linuxPackages_6_12_kctf = linux-kctf.linuxPackages_6_12_kctf;
           linuxPackages_jovian = linux-jovian.linuxPackages_jovian;
         };
