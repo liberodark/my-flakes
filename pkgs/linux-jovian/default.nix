@@ -4,8 +4,8 @@ let
   inherit (lib) versions;
 
   kernelVersion = "6.16.12";
-  vendorVersion = "valve2";
-  hash = "sha256-+iPSOMWWw1bR+KXhEWferyHW5PgU+3ZyucliipYwOHc=";
+  vendorVersion = "valve7";
+  hash = "sha256-x9moiht4YqVpg+048ol6NXW08OogUjAGAC8a6pd9Y3U=";
 in
 buildLinux (args // rec {
   version = "${kernelVersion}-${vendorVersion}";
@@ -121,7 +121,7 @@ buildLinux (args // rec {
     # Disable some options enabled in ArchLinux 6.1.12-arch1 config
     # Jovian: we do have Rust, and we can't lie about it
     # HAVE_RUST = no;
-
+  
     # This has been disabled upstream since 6.11.8-arch1
     # See: https://gitlab.archlinux.org/archlinux/packaging/packages/linux/-/commit/1a06ca984333093fb12cbbff275da31fa2bc5f6c
     ZSWAP_DEFAULT_ON = yes;
@@ -152,6 +152,9 @@ buildLinux (args // rec {
     JOYSTICK_XBOX_GIP = module;
     JOYSTICK_XBOX_GIP_FF = yes;
     JOYSTICK_XBOX_GIP_LEDS = yes;
+
+    # Enable Valve LEDs driver
+    LEDS_VALVE = module;
 
     # Jovian: fix fallout from the vendor-set options
     DRM_AMD_DC_SI = lib.mkForce (option no);
