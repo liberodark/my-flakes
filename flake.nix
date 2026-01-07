@@ -23,6 +23,7 @@
         suyu = pkgs.callPackage ./pkgs/suyu/package.nix { };
         torzu = pkgs.callPackage ./pkgs/torzu/package.nix { };
         torzu-next = pkgs.callPackage ./pkgs/torzu-next/package.nix { };
+        emulationstation-de = pkgs.callPackage ./pkgs/emulationstation-de/package.nix { };
         bore-scheduler = pkgs.callPackage ./pkgs/bore-scheduler/package.nix { };
         linux-kctf = pkgs.callPackage ./pkgs/linux-kctf/package.nix { };
         linux-jovian = {
@@ -37,6 +38,9 @@
           suyu = suyu;
           torzu = torzu;
           torzu-next = torzu-next;
+
+          # Frontend
+          emulationstation-de = emulationstation-de;
 
           # Kernel
           linuxPackages_6_6_bore = bore-scheduler.linuxPackages_6_6_bore.kernel;
@@ -74,6 +78,10 @@
           torzu-next = flake-utils.lib.mkApp {
             drv = torzu-next;
             name = "yuzu";
+          };
+          emulationstation-de = flake-utils.lib.mkApp {
+            drv = emulationstation-de;
+            name = "es-de";
           };
         };
       }
