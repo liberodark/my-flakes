@@ -24,6 +24,7 @@
         torzu = pkgs.callPackage ./pkgs/torzu/package.nix { };
         torzu-next = pkgs.callPackage ./pkgs/torzu-next/package.nix { };
         emulationstation-de = pkgs.callPackage ./pkgs/emulationstation-de/package.nix { };
+        nixnas = pkgs.callPackage ./pkgs/nixnas/package.nix { };
         bore-scheduler = pkgs.callPackage ./pkgs/bore-scheduler/package.nix { };
         linux-kctf = pkgs.callPackage ./pkgs/linux-kctf/package.nix { };
         linux-jovian = {
@@ -41,6 +42,9 @@
 
           # Frontend
           emulationstation-de = emulationstation-de;
+
+          # NAS
+          nixnas = nixnas;
 
           # Kernel
           linuxPackages_6_6_bore = bore-scheduler.linuxPackages_6_6_bore.kernel;
@@ -82,6 +86,10 @@
           emulationstation-de = flake-utils.lib.mkApp {
             drv = emulationstation-de;
             name = "es-de";
+          };
+          nixnas = flake-utils.lib.mkApp {
+            drv = nixnas;
+            name = "nixnas-daemon";
           };
         };
       }
