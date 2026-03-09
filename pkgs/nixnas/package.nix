@@ -8,16 +8,16 @@
 
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "nixnas";
-  version = "1.0.6";
+  version = "1.0.7";
 
   src = fetchFromGitHub {
     owner = "liberodark";
     repo = "nixnas";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-c+CtDeaQc7fwhLuEetA2WXmkGIB8akyezQhUA8FiW1U=";
+    hash = "sha256-NZaf3OjyzfIEV2CW9QemTHySU6zMU74v/sFAms6Nvrw=";
   };
 
-  cargoHash = "sha256-Zcut3DLMXe6iYWWMHhSTmEKtuknUBYTbzkRW1Gc4k54=";
+  cargoHash = "sha256-MUi4IhXjXyXLgUbbVeeBgUxzU37Zr+c5YjlteaGmVRM=";
 
   #nativeInstallCheckInputs = [
   #  versionCheckHook
