@@ -3,9 +3,9 @@
 let
   inherit (lib) versions;
 
-  kernelVersion = "6.16.12";
-  vendorVersion = "valve7";
-  hash = "sha256-x9moiht4YqVpg+048ol6NXW08OogUjAGAC8a6pd9Y3U=";
+  kernelVersion = "6.18.18";
+  vendorVersion = "valve1";
+  hash = "sha256-oii9drRlq+Ud0proD4HQ0BvUHeQyYYiJy8WuMS6Zoqk=";
 in
 buildLinux (args // rec {
   version = "${kernelVersion}-${vendorVersion}";
@@ -102,12 +102,14 @@ buildLinux (args // rec {
 
     LENOVO_WMI_GAMEZONE = module;
     LENOVO_WMI_TUNING = module;
-    LENOVO_LEGOS_HID = module;
+    # Jovian: renamed
+    # LENOVO_LEGOS_HID = module;
+    HID_LENOVO_GO = module;
+    HID_LENOVO_GO_S = module;
 
     ZOTAC_ZONE_HID = module;
     ZOTAC_ZONE_PLATFORM = module;
 
-    # Jovian: renamed
     HID_ASUS_ALLY = module;
     ASUS_ARMOURY = module;
     ASUS_WMI_DEPRECATED_ATTRS = yes;
@@ -121,13 +123,14 @@ buildLinux (args // rec {
     # Disable some options enabled in ArchLinux 6.1.12-arch1 config
     # Jovian: we do have Rust, and we can't lie about it
     # HAVE_RUST = no;
-  
+
     # This has been disabled upstream since 6.11.8-arch1
     # See: https://gitlab.archlinux.org/archlinux/packaging/packages/linux/-/commit/1a06ca984333093fb12cbbff275da31fa2bc5f6c
     ZSWAP_DEFAULT_ON = yes;
 
     # Build as module to experiment with toggling
-    TCG_TPM = module;
+    # Jovian: NixOS pulls it in as y always
+    # TCG_TPM = module;
 
     # Per Colin at Quectel
     CFG80211_CERTIFICATION_ONUS = yes;
@@ -148,6 +151,9 @@ buildLinux (args // rec {
     # Jovian: renamed
     MITIGATION_CALL_DEPTH_TRACKING = no;
 
+    # Disable drm panic screen
+    DRM_PANIC = lib.mkForce no;
+
     # Xbox GIP driver
     JOYSTICK_XBOX_GIP = module;
     JOYSTICK_XBOX_GIP_FF = yes;
@@ -159,11 +165,14 @@ buildLinux (args // rec {
     # Jovian: fix fallout from the vendor-set options
     DRM_AMD_DC_SI = lib.mkForce (option no);
     DRM_HYPERV = lib.mkForce (option no);
+    DRM_PANIC_SCREEN = lib.mkForce (option no);
+    DRM_PANIC_SCREEN_QR_CODE = lib.mkForce (option no);
     FB_HYPERV = lib.mkForce (option no);
-    INTEL_TDX_GUEST = lib.mkForce (option no);
     HYPERV = lib.mkForce (option no);
+    INTEL_TDX_GUEST = lib.mkForce (option no);
     KVM_GUEST = lib.mkForce (option no);
     MOUSE_PS2_VMMOUSE = lib.mkForce (option no);
+    NOVA_CORE = lib.mkForce (option no);
     PARAVIRT_TIME_ACCOUNTING = lib.mkForce (option no);
     TDX_GUEST_DRIVER = lib.mkForce (option no);
   };
