@@ -7,12 +7,12 @@
   ...
 }:
 let
-  version = "6.6.1";
+  version = "6.6.2";
   bore-scheduler = fetchFromGitHub {
     owner = "firelzrd";
     repo = "bore-scheduler";
-    rev = "b73256bab82986f344ebb38c153ce5fdb0317bdc";
-    hash = "sha256-56Va8VR51MEuV8Ma9nsUscx9X/pZ7ELv6HuYhpmdKBk=";
+    rev = "a020594b8562909d71494f1857432f61cb75893a";
+    hash = "sha256-Nb20eFFliVngS7Fr+FMm3BExz8PaKwxeZfp3kNxaa6M=";
   };
 
   kernelPatchInfo = {
@@ -25,7 +25,7 @@ let
       separator = "-bore";
     };
     "6.18" = {
-      revision = "3";
+      revision = "18";
       separator = "-bore";
     };
   };
@@ -51,7 +51,12 @@ let
     ++ lib.optionals (kernelVersion != "6.18") [
       {
         name = "bore-scheduler-smt";
-        patch = "${bore-scheduler}/patches/stable/linux-${kernelVersion}-bore/0002-sched-fair-Prefer-full-idle-SMT-cores.patch";
+        patch = "${bore-scheduler}/patches/stable/linux-${kernelVersion}-bore/${
+          if kernelVersion == "6.6" then
+            "0002-sched-fair-Prefer-full-idle-SMT-cores-by-Andrea-Righ.patch"
+          else
+            "0002-sched-fair-Prefer-full-idle-SMT-cores.patch"
+        }";
       }
     ];
 
