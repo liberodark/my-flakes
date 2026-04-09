@@ -13,8 +13,8 @@
   enet,
   fetchgit,
   fetchurl,
-  ffmpeg-headless,
-  fmt,
+  ffmpeg_7-headless,
+  fmt_10,
   glslang,
   libopus,
   libusb1,
@@ -98,6 +98,7 @@ stdenv.mkDerivation (finalAttrs: {
     ./fix-udp-protocol.patch
     # Use specific boost::asio includes and update to modern io_context
     ./fix-udp-client.patch
+    ./fix-qt-private.patch
   ];
 
   nativeBuildInputs = [
@@ -127,10 +128,10 @@ stdenv.mkDerivation (finalAttrs: {
     yasm
     libva # for accelerated video decode on non-nvidia
     nv-codec-headers-12 # for accelerated video decode on nvidia
-    ffmpeg-headless
+    ffmpeg_7-headless
     # end ffmpeg deps
 
-    fmt
+    fmt_10
     # intentionally omitted: gamemode - loaded dynamically at runtime
     # intentionally omitted: httplib - upstream requires an older version than what we have
     libopus
@@ -183,6 +184,9 @@ stdenv.mkDerivation (finalAttrs: {
     # We dont want to bother upstream with potentially outdated compat reports
     (lib.cmakeBool "SUYU_ENABLE_COMPATIBILITY_REPORTING" false)
     (lib.cmakeBool "ENABLE_COMPATIBILITY_LIST_DOWNLOAD" false) # We provide this deterministically
+
+    # Allow older CMake policy
+    (lib.cmakeFeature "CMAKE_POLICY_VERSION_MINIMUM" "3.5")
   ];
 
   env = {
