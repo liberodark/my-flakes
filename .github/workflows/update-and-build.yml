@@ -118,3 +118,50 @@ jobs:
               body: `Weekly build failed: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
               labels: ['bug', 'ci']
             });
+
+  build-aarch64:
+    needs: update-build-cache
+    if: always()
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref }}
+
+      - uses: cachix/install-nix-action@v31.10.6
+        with:
+          install_url: https://nixos.org/nix/install
+          extra_nix_config: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+            max-jobs = auto
+            cores = 0
+
+      - uses: cachix/cachix-action@v17
+        with:
+          name: ${{ env.CACHIX_NAME }}
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Build and push aarch64 packages
+        run: |
+          set -euo pipefail
+          PACKAGES=("nixnas")
+          FAILED=""
+          for pkg in "${PACKAGES[@]}"; do
+            echo "::group::Building $pkg (aarch64)"
+            STORE_PATH=$(nix eval .#$pkg.outPath --raw 2>/dev/null || true)
+            if [ -n "$STORE_PATH" ] && nix store info --store https://${{ env.CACHIX_NAME }}.cachix.org $STORE_PATH &>/dev/null; then
+              echo "✓ $pkg (already in cache)"
+            else
+              if nix build .#$pkg --no-link --print-build-logs; then
+                nix build .#$pkg --json | jq -r '.[0].outputs.out' | cachix push ${{ env.CACHIX_NAME }} || true
+                echo "✓ $pkg"
+              else
+                echo "✗ $pkg (build failed)"
+                FAILED="$FAILED $pkg"
+              fi
+            fi
+            echo "::endgroup::"
+          done
+          [ -z "$FAILED" ] || { echo "Failed:$FAILED"; exit 1; }
