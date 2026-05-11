@@ -34,10 +34,27 @@
         "type": "github"
       }
     },
+    "nixpkgs-dusk": {
+      "locked": {
+        "lastModified": 1778509451,
+        "narHash": "sha256-lASLnpfF5R0kTHzoEd9cfdxKm0UGz7Y2UJyar07P7ss=",
+        "owner": "liberodark",
+        "repo": "nixpkgs",
+        "rev": "879318807c3ff47e00a5a65cd88914c01f0a19ab",
+        "type": "github"
+      },
+      "original": {
+        "owner": "liberodark",
+        "repo": "nixpkgs",
+        "rev": "879318807c3ff47e00a5a65cd88914c01f0a19ab",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "nixpkgs-dusk": "nixpkgs-dusk"
       }
     },
     "systems": {

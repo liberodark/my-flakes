@@ -5,6 +5,7 @@
     # Temporary disable https://github.com/NixOS/nixpkgs/issues/435015
     #nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs-dusk.url = "github:liberodark/nixpkgs/879318807c3ff47e00a5a65cd88914c01f0a19ab";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -12,6 +13,7 @@
     {
       self,
       nixpkgs,
+      nixpkgs-dusk,
       flake-utils,
       ...
     }:
@@ -19,6 +21,7 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        pkgsDusk = nixpkgs-dusk.legacyPackages.${system};
         citron = pkgs.callPackage ./pkgs/citron/package.nix { };
         suyu = pkgs.callPackage ./pkgs/suyu/package.nix { };
         torzu = pkgs.callPackage ./pkgs/torzu/package.nix { };
@@ -27,6 +30,7 @@
         nixnas = pkgs.callPackage ./pkgs/nixnas/package.nix { };
         bore-scheduler = pkgs.callPackage ./pkgs/bore-scheduler/package.nix { };
         linux-kctf = pkgs.callPackage ./pkgs/linux-kctf/package.nix { };
+        dusk = pkgsDusk.dusk;
         linux-jovian = {
           linuxPackages_jovian = pkgs.linuxPackagesFor (pkgs.callPackage ./pkgs/linux-jovian/default.nix { });
         };
@@ -39,6 +43,9 @@
           suyu = suyu;
           torzu = torzu;
           torzu-next = torzu-next;
+
+          # Game
+          dusk = dusk;
 
           # Frontend
           emulationstation-de = emulationstation-de;
@@ -82,6 +89,10 @@
           torzu-next = flake-utils.lib.mkApp {
             drv = torzu-next;
             name = "yuzu";
+          };
+          dusk = flake-utils.lib.mkApp {
+            drv = dusk;
+            name = "dusk";
           };
           emulationstation-de = flake-utils.lib.mkApp {
             drv = emulationstation-de;
