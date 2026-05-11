@@ -3,9 +3,9 @@
 let
   inherit (lib) versions;
 
-  kernelVersion = "6.18.18";
+  kernelVersion = "6.18.28";
   vendorVersion = "valve1";
-  hash = "sha256-oii9drRlq+Ud0proD4HQ0BvUHeQyYYiJy8WuMS6Zoqk=";
+  hash = "sha256-gWxRWz9AqcsNDlTT9NPbY9ZhJEFsAwqEpWT5EVfbi9E=";
 in
 buildLinux (args // rec {
   version = "${kernelVersion}-${vendorVersion}";
@@ -113,6 +113,8 @@ buildLinux (args // rec {
     HID_ASUS_ALLY = module;
     ASUS_ARMOURY = module;
     ASUS_WMI_DEPRECATED_ATTRS = yes;
+
+    HID_OXP = module;
 
     # PARAVIRT options have overhead, even on bare metal boots. They can cause
     # spinlocks to not be inlined as well. Either way, we don't intend to run this
