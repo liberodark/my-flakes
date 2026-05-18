@@ -40,8 +40,8 @@ let
   auroraSrc = fetchFromGitHub {
     owner = "encounter";
     repo = "aurora";
-    rev = "63606a43265a3bc18dafd500ab4d7a2108f109e6";
-    hash = "sha256-xBvnAwGwNzav67Ac6oUz7RqDUwqgL2bsME3OOMn8Tqw=";
+    rev = "40913d532e5859a68e56b88d8aaec6bff1b88a2e";
+    hash = "sha256-aYIdwdlarmBAHKFLDXT7sw2Pdt3IJ6IrUEsM7RPp6pE=";
   };
   dawnSrc = fetchzip {
     url = "https://github.com/encounter/dawn-build/releases/download/v20260423.175430/dawn-linux-x86_64.tar.gz";
@@ -69,14 +69,14 @@ let
   };
 in
 stdenv.mkDerivation (finalAttrs: {
-  pname = "dusk";
-  version = "1.0.1";
+  pname = "dusklight";
+  version = "1.1.1";
 
   src = fetchFromGitHub {
     owner = "TwilitRealm";
-    repo = "dusk";
+    repo = "dusklight";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-lTvtYeQsptpjI3RuyfmlVKkdfxVMgMZkjv/KUzy1h2k=";
+    hash = "sha256-vPdVkovfz6oXjt4QjD2YtEKfeFkLFB0EtQF5Zb7Zzzg=";
   };
 
   strictDeps = true;
@@ -153,29 +153,29 @@ stdenv.mkDerivation (finalAttrs: {
   installPhase = ''
     runHook preInstall
 
-    install -Dm755 dusk             $out/share/dusk/dusk
-    cp -r ../res                    $out/share/dusk/res
+    install -Dm755 dusklight        $out/share/dusklight/dusklight
+    cp -r ../res                    $out/share/dusklight/res
     mkdir -p $out/bin
-    ln -s ../share/dusk/dusk        $out/bin/dusk
+    ln -s ../share/dusklight/dusklight   $out/bin/dusklight
 
     install -Dm644 \
-      ../platforms/freedesktop/dusk.desktop \
-      $out/share/applications/dusk.desktop
+      ../platforms/freedesktop/dusklight.desktop \
+      $out/share/applications/dusklight.desktop
 
-    substituteInPlace $out/share/applications/dusk.desktop \
-      --replace-fail "Icon=dusk" "Icon=dev.twilitrealm.dusk"
+    substituteInPlace $out/share/applications/dusklight.desktop \
+      --replace-fail "Icon=dusklight" "Icon=dev.twilitrealm.dusklight"
 
     for size in 16x16 32x32 48x48 64x64 128x128 256x256 512x512 1024x1024; do
       install -Dm644 \
-        ../platforms/freedesktop/$size/apps/dusk.png \
-        $out/share/icons/hicolor/$size/apps/dev.twilitrealm.dusk.png
+        ../platforms/freedesktop/$size/apps/dusklight.png \
+        $out/share/icons/hicolor/$size/apps/dev.twilitrealm.dusklight.png
     done
 
     runHook postInstall
   '';
 
   postFixup = ''
-    wrapProgram $out/share/dusk/dusk \
+    wrapProgram $out/share/dusklight/dusklight \
       --prefix LD_LIBRARY_PATH : "${
         lib.makeLibraryPath [
           vulkan-loader
@@ -189,10 +189,10 @@ stdenv.mkDerivation (finalAttrs: {
 
   meta = {
     description = "Reverse-engineered reimplementation of The Legend of Zelda: Twilight Princess";
-    homepage = "https://github.com/TwilitRealm/dusk";
-    changelog = "https://github.com/TwilitRealm/dusk/releases/tag/v${finalAttrs.version}";
+    homepage = "https://github.com/TwilitRealm/dusklight";
+    changelog = "https://github.com/TwilitRealm/dusklight/releases/tag/v${finalAttrs.version}";
     license = lib.licenses.cc0;
-    mainProgram = "dusk";
+    mainProgram = "dusklight";
     platforms = [ "x86_64-linux" ];
     maintainers = with lib.maintainers; [ liberodark ];
   };

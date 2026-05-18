@@ -34,19 +34,19 @@
         "type": "github"
       }
     },
-    "nixpkgs-dusk": {
+    "nixpkgs-dusklight": {
       "locked": {
-        "lastModified": 1778509451,
-        "narHash": "sha256-lASLnpfF5R0kTHzoEd9cfdxKm0UGz7Y2UJyar07P7ss=",
+        "lastModified": 1778843864,
+        "narHash": "sha256-x5U7KdJI2H8xLLXK1ym5tJGe3g1qPkzrLiKoWBKocFU=",
         "owner": "liberodark",
         "repo": "nixpkgs",
-        "rev": "879318807c3ff47e00a5a65cd88914c01f0a19ab",
+        "rev": "8e19c5a1ea7292eed3884532c10d196e7ae4a03a",
         "type": "github"
       },
       "original": {
         "owner": "liberodark",
         "repo": "nixpkgs",
-        "rev": "879318807c3ff47e00a5a65cd88914c01f0a19ab",
+        "rev": "8e19c5a1ea7292eed3884532c10d196e7ae4a03a",
         "type": "github"
       }
     },
@@ -54,7 +54,7 @@
       "inputs": {
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs",
-        "nixpkgs-dusk": "nixpkgs-dusk"
+        "nixpkgs-dusklight": "nixpkgs-dusklight"
       }
     },
     "systems": {
