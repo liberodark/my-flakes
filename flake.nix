@@ -5,7 +5,7 @@
     # Temporary disable https://github.com/NixOS/nixpkgs/issues/435015
     #nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
-    nixpkgs-dusklight.url = "github:liberodark/nixpkgs/8e19c5a1ea7292eed3884532c10d196e7ae4a03a";
+    nixpkgs-dusklight.url = "github:liberodark/nixpkgs/a686695fe0ae3e004a958e87c14645493d974458";
     flake-utils.url = "github:numtide/flake-utils";
   };
 

@@ -40,8 +40,8 @@ let
   auroraSrc = fetchFromGitHub {
     owner = "encounter";
     repo = "aurora";
-    rev = "40913d532e5859a68e56b88d8aaec6bff1b88a2e";
-    hash = "sha256-aYIdwdlarmBAHKFLDXT7sw2Pdt3IJ6IrUEsM7RPp6pE=";
+    rev = "10006618ee493f248b8597e4dfa1d2871d76a1d9";
+    hash = "sha256-lY2xuVyB7aPJ9+2wwLRB3F5U/BuPSxdSpegdG+qNd9o=";
   };
   dawnSrc = fetchzip {
     url = "https://github.com/encounter/dawn-build/releases/download/v20260423.175430/dawn-linux-x86_64.tar.gz";
@@ -70,13 +70,13 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "dusklight";
-  version = "1.1.1";
+  version = "1.2.0";
 
   src = fetchFromGitHub {
     owner = "TwilitRealm";
     repo = "dusklight";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-vPdVkovfz6oXjt4QjD2YtEKfeFkLFB0EtQF5Zb7Zzzg=";
+    hash = "sha256-a5nCri4XTpnotJY9qRrKTJ8cb9L6cfGKPXmvbbj/1fQ=";
   };
 
   strictDeps = true;

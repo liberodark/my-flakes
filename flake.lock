@@ -36,17 +36,17 @@
     },
     "nixpkgs-dusklight": {
       "locked": {
-        "lastModified": 1778843864,
-        "narHash": "sha256-x5U7KdJI2H8xLLXK1ym5tJGe3g1qPkzrLiKoWBKocFU=",
+        "lastModified": 1779111351,
+        "narHash": "sha256-LN2ILV/i3CrAS+5qlTXnHqTZUOruhKiNRCqyWpdMByU=",
         "owner": "liberodark",
         "repo": "nixpkgs",
-        "rev": "8e19c5a1ea7292eed3884532c10d196e7ae4a03a",
+        "rev": "a686695fe0ae3e004a958e87c14645493d974458",
         "type": "github"
       },
       "original": {
         "owner": "liberodark",
         "repo": "nixpkgs",
-        "rev": "8e19c5a1ea7292eed3884532c10d196e7ae4a03a",
+        "rev": "a686695fe0ae3e004a958e87c14645493d974458",
         "type": "github"
       }
     },
