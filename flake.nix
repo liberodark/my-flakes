@@ -4,8 +4,7 @@
   inputs = {
     # Temporary disable https://github.com/NixOS/nixpkgs/issues/435015
     #nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
-    nixpkgs-dusklight.url = "github:liberodark/nixpkgs/a686695fe0ae3e004a958e87c14645493d974458";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -13,7 +12,6 @@
     {
       self,
       nixpkgs,
-      nixpkgs-dusklight,
       flake-utils,
       ...
     }:
@@ -21,7 +19,6 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        pkgsDusklight = nixpkgs-dusklight.legacyPackages.${system};
         citron = pkgs.callPackage ./pkgs/citron/package.nix { };
         suyu = pkgs.callPackage ./pkgs/suyu/package.nix { };
         torzu = pkgs.callPackage ./pkgs/torzu/package.nix { };
@@ -30,7 +27,7 @@
         nixnas = pkgs.callPackage ./pkgs/nixnas/package.nix { };
         bore-scheduler = pkgs.callPackage ./pkgs/bore-scheduler/package.nix { };
         linux-kctf = pkgs.callPackage ./pkgs/linux-kctf/package.nix { };
-        dusklight = pkgsDusklight.dusklight;
+        dusklight = pkgs.callPackage ./pkgs/dusklight/package.nix { };
         linux-jovian = {
           linuxPackages_jovian = pkgs.linuxPackagesFor (pkgs.callPackage ./pkgs/linux-jovian/default.nix { });
         };
