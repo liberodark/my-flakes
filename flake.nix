@@ -15,7 +15,7 @@
       flake-utils,
       ...
     }:
-    flake-utils.lib.eachDefaultSystem (
+    flake-utils.lib.eachSystem (flake-utils.lib.defaultSystems ++ [ "riscv64-linux" ]) (
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
