@@ -15,7 +15,7 @@
       flake-utils,
       ...
     }:
-    flake-utils.lib.eachDefaultSystem (
+    flake-utils.lib.eachSystem (flake-utils.lib.defaultSystems ++ [ "riscv64-linux" ]) (
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
@@ -28,6 +28,7 @@
         bore-scheduler = pkgs.callPackage ./pkgs/bore-scheduler/package.nix { };
         linux-kctf = pkgs.callPackage ./pkgs/linux-kctf/package.nix { };
         dusklight = pkgs.callPackage ./pkgs/dusklight/package.nix { };
+        github-runner-riscv = pkgs.callPackage ./pkgs/github-runner-riscv/package.nix { };
         linux-jovian = {
           linuxPackages_jovian = pkgs.linuxPackagesFor (pkgs.callPackage ./pkgs/linux-jovian/default.nix { });
         };
@@ -49,6 +50,9 @@
 
           # NAS
           nixnas = nixnas;
+
+          # Tools
+          github-runner-riscv = github-runner-riscv;
 
           # Kernel
           linuxPackages_6_6_bore = bore-scheduler.linuxPackages_6_6_bore.kernel;
@@ -90,6 +94,10 @@
           dusklight = flake-utils.lib.mkApp {
             drv = dusklight;
             name = "dusklight";
+          };
+          github-runner-riscv = flake-utils.lib.mkApp {
+            drv = github-runner-riscv;
+            name = "github-runner-riscv";
           };
           emulationstation-de = flake-utils.lib.mkApp {
             drv = emulationstation-de;
