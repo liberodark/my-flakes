@@ -28,6 +28,7 @@
         bore-scheduler = pkgs.callPackage ./pkgs/bore-scheduler/package.nix { };
         linux-kctf = pkgs.callPackage ./pkgs/linux-kctf/package.nix { };
         dusklight = pkgs.callPackage ./pkgs/dusklight/package.nix { };
+        nom-rs = pkgs.callPackage ./pkgs/nom-rs/package.nix { };
         linux-jovian = {
           linuxPackages_jovian = pkgs.linuxPackagesFor (pkgs.callPackage ./pkgs/linux-jovian/default.nix { });
         };
@@ -49,6 +50,9 @@
 
           # NAS
           nixnas = nixnas;
+
+          # Tools
+          nom-rs = nom-rs;
 
           # Kernel
           linuxPackages_6_6_bore = bore-scheduler.linuxPackages_6_6_bore.kernel;
@@ -98,6 +102,10 @@
           nixnas = flake-utils.lib.mkApp {
             drv = nixnas;
             name = "nixnas-daemon";
+          };
+          nom-rs = flake-utils.lib.mkApp {
+            drv = nom-rs;
+            name = "nom";
           };
         };
       }
