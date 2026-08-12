@@ -26,6 +26,9 @@
         emulationstation-de = pkgs.callPackage ./pkgs/emulationstation-de/package.nix { };
         nixnas = pkgs.callPackage ./pkgs/nixnas/package.nix { };
         bore-scheduler = pkgs.callPackage ./pkgs/bore-scheduler/package.nix { };
+        linux-bc250 = pkgs.callPackage ./pkgs/linux-bc250/package.nix {
+          inherit bore-scheduler;
+        };
         linux-kctf = pkgs.callPackage ./pkgs/linux-kctf/package.nix { };
         dusklight = pkgs.callPackage ./pkgs/dusklight/package.nix { };
         nom-rs = pkgs.callPackage ./pkgs/nom-rs/package.nix { };
@@ -58,6 +61,7 @@
           linuxPackages_6_6_bore = bore-scheduler.linuxPackages_6_6_bore.kernel;
           linuxPackages_6_12_bore = bore-scheduler.linuxPackages_6_12_bore.kernel;
           linuxPackages_6_18_bore = bore-scheduler.linuxPackages_6_18_bore.kernel;
+          linuxPackages_6_18_bore_bc250 = linux-bc250.linuxPackages_6_18_bore_bc250.kernel;
           linuxPackages_6_12_kctf = linux-kctf.linuxPackages_6_12_kctf.kernel;
           linuxPackages_jovian = linux-jovian.linuxPackages_jovian.kernel;
         };
@@ -66,6 +70,7 @@
           linuxPackages_6_6_bore = bore-scheduler.linuxPackages_6_6_bore;
           linuxPackages_6_12_bore = bore-scheduler.linuxPackages_6_12_bore;
           linuxPackages_6_18_bore = bore-scheduler.linuxPackages_6_18_bore;
+          linuxPackages_6_18_bore_bc250 = linux-bc250.linuxPackages_6_18_bore_bc250;
           linuxPackages_6_12_kctf = linux-kctf.linuxPackages_6_12_kctf;
           linuxPackages_jovian = linux-jovian.linuxPackages_jovian;
         };
