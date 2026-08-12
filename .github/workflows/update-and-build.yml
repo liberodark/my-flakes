@@ -15,7 +15,7 @@ on:
     - cron: "0 0 * * *"
   push:
     branches:
-      - main
+      - master
     paths:
       - "flake.nix"
       - "flake.lock"
@@ -77,13 +77,13 @@ jobs:
           FAILED=""
           for pkg in $PACKAGES; do
             echo "::group::Building $pkg"
-            STORE_PATH=$(nix eval .#$pkg.outPath --raw 2>/dev/null || true)
+            STORE_PATH=$(nix eval .#$pkg.dev.outPath --raw 2>/dev/null || nix eval .#$pkg.outPath --raw 2>/dev/null || true)
 
             if [ -n "$STORE_PATH" ] && nix store info --store https://${{ env.CACHIX_NAME }}.cachix.org $STORE_PATH &>/dev/null; then
               echo "✓ $pkg (already in cache)"
             else
-              if nix build .#$pkg --no-link --print-build-logs; then
-                nix build .#$pkg --json | jq -r '.[0].outputs.out' | cachix push ${{ env.CACHIX_NAME }} || true
+              if nix build ".#$pkg^*" --no-link --print-build-logs; then
+                nix build ".#$pkg^*" --json | jq -r '.[].outputs | to_entries[].value' | cachix push ${{ env.CACHIX_NAME }} || true
                 echo "✓ $pkg"
               else
                 echo "✗ $pkg (build failed)"
