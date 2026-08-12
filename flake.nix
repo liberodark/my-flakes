@@ -26,6 +26,7 @@
         emulationstation-de = pkgs.callPackage ./pkgs/emulationstation-de/package.nix { };
         nixnas = pkgs.callPackage ./pkgs/nixnas/package.nix { };
         bore-scheduler = pkgs.callPackage ./pkgs/bore-scheduler/package.nix { };
+        cyan-skillfish-governor-smu = pkgs.callPackage ./pkgs/cyan-skillfish-governor-smu/package.nix { };
         linux-bc250 = pkgs.callPackage ./pkgs/linux-bc250/package.nix {
           inherit bore-scheduler;
         };
@@ -56,6 +57,9 @@
 
           # Tools
           nom-rs = nom-rs;
+
+          # BC-250
+          cyan-skillfish-governor-smu = cyan-skillfish-governor-smu;
 
           # Kernel
           linuxPackages_6_6_bore = bore-scheduler.linuxPackages_6_6_bore.kernel;
