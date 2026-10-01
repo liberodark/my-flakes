@@ -26,12 +26,10 @@
         emulationstation-de = pkgs.callPackage ./pkgs/emulationstation-de/package.nix { };
         nixnas = pkgs.callPackage ./pkgs/nixnas/package.nix { };
         bore-scheduler = pkgs.callPackage ./pkgs/bore-scheduler/package.nix { };
-        cyan-skillfish-governor-smu = pkgs.callPackage ./pkgs/cyan-skillfish-governor-smu/package.nix { };
         linux-bc250 = pkgs.callPackage ./pkgs/linux-bc250/package.nix {
           inherit bore-scheduler;
         };
         linux-kctf = pkgs.callPackage ./pkgs/linux-kctf/package.nix { };
-        dusklight = pkgs.callPackage ./pkgs/dusklight/package.nix { };
         nom-rs = pkgs.callPackage ./pkgs/nom-rs/package.nix { };
         linux-jovian = {
           linuxPackages_jovian = pkgs.linuxPackagesFor (pkgs.callPackage ./pkgs/linux-jovian/default.nix { });
@@ -46,9 +44,6 @@
           torzu = torzu;
           torzu-next = torzu-next;
 
-          # Game
-          dusklight = dusklight;
-
           # Frontend
           emulationstation-de = emulationstation-de;
 
@@ -57,9 +52,6 @@
 
           # Tools
           nom-rs = nom-rs;
-
-          # BC-250
-          cyan-skillfish-governor-smu = cyan-skillfish-governor-smu;
 
           # Kernel
           linuxPackages_6_12_bore = bore-scheduler.linuxPackages_6_12_bore.kernel;
@@ -97,10 +89,6 @@
           torzu-next = flake-utils.lib.mkApp {
             drv = torzu-next;
             name = "yuzu";
-          };
-          dusklight = flake-utils.lib.mkApp {
-            drv = dusklight;
-            name = "dusklight";
           };
           emulationstation-de = flake-utils.lib.mkApp {
             drv = emulationstation-de;
