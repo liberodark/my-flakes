@@ -64,7 +64,6 @@ jobs:
             #"torzu"
             #"suyu"
             "nixnas"
-            #"linuxPackages_6_6_bore"
             "linuxPackages_6_12_bore"
             "linuxPackages_6_18_bore"
             "linuxPackages_6_18_bore_bc250"

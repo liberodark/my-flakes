@@ -1,31 +1,26 @@
 {
   lib,
   fetchFromGitHub,
-  linuxPackages_6_6,
   linuxPackages_6_12,
   linuxPackages_6_18,
   ...
 }:
 let
-  version = "6.6.3";
+  version = "6.8.0";
   bore-scheduler = fetchFromGitHub {
     owner = "firelzrd";
     repo = "bore-scheduler";
-    rev = "09075221d81b27cc6ba4dc0d1be14a62555fde85";
-    hash = "sha256-vCcaidQexvJcoyYBYqgikiX4jTOVcgFNGZgsVALuIxc=";
+    rev = "56e92d8af94a9a1c2d3464349e0a78167cd884c2";
+    hash = "sha256-6GARHZ+AEYGsKckix5zXJFRHs/pHKRO8DTVOO/ziCBE=";
   };
 
   kernelPatchInfo = {
-    "6.6" = {
-      revision = "107";
-      separator = "-bore";
-    };
     "6.12" = {
       revision = "37";
       separator = "-bore";
     };
     "6.18" = {
-      revision = "22";
+      revision = "48";
       separator = "-bore";
     };
   };
@@ -34,29 +29,14 @@ let
     kernelVersion:
     let
       patchInfo = kernelPatchInfo.${kernelVersion} or (throw "Unknown kernel version: ${kernelVersion}");
-      patchFileName =
-        if kernelVersion == "6.6" then
-          "0001-linux6.6.107-bore5.9.6.patch"
-        else
-          "0001-linux${kernelVersion}${
-            if patchInfo.revision != "" then ".${patchInfo.revision}" else ""
-          }${patchInfo.separator}-${version}.patch";
+      patchFileName = "0001-linux${kernelVersion}${
+        if patchInfo.revision != "" then ".${patchInfo.revision}" else ""
+      }${patchInfo.separator}-${version}.patch";
     in
     [
       {
         name = "bore-scheduler";
-        patch = "${bore-scheduler}/patches/stable/linux-${kernelVersion}-bore/${patchFileName}";
-      }
-    ]
-    ++ lib.optionals (kernelVersion != "6.18") [
-      {
-        name = "bore-scheduler-smt";
-        patch = "${bore-scheduler}/patches/stable/linux-${kernelVersion}-bore/${
-          if kernelVersion == "6.6" then
-            "0002-sched-fair-Prefer-full-idle-SMT-cores-by-Andrea-Righ.patch"
-          else
-            "0002-sched-fair-Prefer-full-idle-SMT-cores.patch"
-        }";
+        patch = "${bore-scheduler}/patches/stable/${patchFileName}";
       }
     ];
 
@@ -82,7 +62,6 @@ let
     );
 in
 {
-  linuxPackages_6_6_bore = makeKernelPackage linuxPackages_6_6 "6.6";
   linuxPackages_6_12_bore = makeKernelPackage linuxPackages_6_12 "6.12";
   linuxPackages_6_18_bore = makeKernelPackage linuxPackages_6_18 "6.18";
 }

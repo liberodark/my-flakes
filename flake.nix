@@ -62,7 +62,6 @@
           cyan-skillfish-governor-smu = cyan-skillfish-governor-smu;
 
           # Kernel
-          linuxPackages_6_6_bore = bore-scheduler.linuxPackages_6_6_bore.kernel;
           linuxPackages_6_12_bore = bore-scheduler.linuxPackages_6_12_bore.kernel;
           linuxPackages_6_18_bore = bore-scheduler.linuxPackages_6_18_bore.kernel;
           linuxPackages_6_18_bore_bc250 = linux-bc250.linuxPackages_6_18_bore_bc250.kernel;
@@ -71,7 +70,6 @@
         };
 
         kernelPackages = {
-          linuxPackages_6_6_bore = bore-scheduler.linuxPackages_6_6_bore;
           linuxPackages_6_12_bore = bore-scheduler.linuxPackages_6_12_bore;
           linuxPackages_6_18_bore = bore-scheduler.linuxPackages_6_18_bore;
           linuxPackages_6_18_bore_bc250 = linux-bc250.linuxPackages_6_18_bore_bc250;
