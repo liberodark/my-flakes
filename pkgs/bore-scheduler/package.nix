@@ -6,12 +6,12 @@
   ...
 }:
 let
-  version = "6.8.0";
+  version = "7.0.0";
   bore-scheduler = fetchFromGitHub {
     owner = "firelzrd";
     repo = "bore-scheduler";
-    rev = "56e92d8af94a9a1c2d3464349e0a78167cd884c2";
-    hash = "sha256-6GARHZ+AEYGsKckix5zXJFRHs/pHKRO8DTVOO/ziCBE=";
+    rev = "1e2f57ad74e8b8b1d315c03b7abd8d74e40448b4";
+    hash = "sha256-M/fHduPc3TGm8ZboC7TJoNiA7ezTAexPZRoBg9ugE20=";
   };
 
   kernelPatchInfo = {
